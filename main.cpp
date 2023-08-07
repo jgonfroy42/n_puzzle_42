@@ -4,6 +4,7 @@
 #include <iostream>
 #include <queue>
 #include <stack>
+#include <set>
 
 #include "State.hpp"
 
@@ -11,7 +12,7 @@
 #include <chrono>
 using namespace std::chrono;
 
-int n = 5;
+int n = 7;
 
 State	*search_algorithm(State *init_state);
 
@@ -133,7 +134,7 @@ State	*search_algorithm(State *init_state)
 {
 	
 	std::vector<int> winning_state = get_winning_grid(init_state->n);
-	std::vector<std::vector<int>> visited;
+	std::set<std::vector<int>> visited;
 	
 	auto cmp = [](State *lhs, State *rhs) { return lhs->score > rhs->score; };
 	std::priority_queue<State*, std::vector<State*>, decltype(cmp)> toDo(cmp);
@@ -144,14 +145,15 @@ State	*search_algorithm(State *init_state)
 	{
 		State *current = toDo.top();
 		toDo.pop();
-		visited.push_back(current->get_grid());
+		visited.insert(current->get_grid());
 		
 
 		for (auto move : current->get_possible_moves())
 		{
 			if (*move == winning_state)
 				return move;
-			if (find(visited.begin(), visited.end(), move->get_grid()) == visited.end())
+
+			if (visited.find(move->get_grid()) == visited.end())
 			{
 				toDo.push(move);
 				continue ;
