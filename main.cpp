@@ -12,9 +12,9 @@
 #include <chrono>
 using namespace std::chrono;
 
-int n = 7;
+int n = 4;
 
-State	*search_algorithm(State *init_state);
+std::vector<State> search_algorithm(State *init_state);
 
 std::vector<int>	get_winning_grid(int size)
 {
@@ -94,7 +94,6 @@ int main()
 	srand(time(0));
 	State *init_state = new State(generate_grid(n));
 	
-	auto start = high_resolution_clock::now();
 
 	while (!is_solvable(init_state->grid))
 	{
@@ -106,61 +105,93 @@ int main()
 		
 	init_state->display_grid();
 
-	State *solution = search_algorithm(init_state);
-	std::stack<State*> path;	
+	auto start = high_resolution_clock::now();
+	std::vector<State> path = search_algorithm(init_state);
+	auto stop = high_resolution_clock::now();
 
 	std::cout << std::endl << "---Solution---" << std::endl;
 
-	while (solution->parent != NULL)
+	for (auto & it : path)
 	{
-		path.push(solution);
-		solution = solution->parent;	
-	}
-	path.push(solution);
-
-	while (!path.empty())
-	{
-		State *tmp = path.top();
-		path.pop();
-		tmp->display_grid();
+		it.display_grid();
 		std::cout << std::endl;
 	}
-	auto stop = high_resolution_clock::now();
+
 	auto duration = duration_cast<milliseconds>(stop - start);
 	std::cout << std::endl << duration.count() << " ms" << std::endl;
+	delete init_state;
 }
 
-State	*search_algorithm(State *init_state)
+//okay so "old" algorithm had a loop where
+/*
+
+	while todo ! empty
+		take the first one
+		insert it to visited
+		expand children
+		for each children
+			if winning state finish
+			else if !already visited push it to todo
+
+
+	new proposition is
+
+	while todo ! empty
+*/
+
+std::vector<State> create_path(const State *ending_state)
 {
-	
+	std::stack<const State *> temp;
+	std::vector<State> ret;
+
+	while (ending_state != NULL)
+	{
+		temp.push(ending_state);
+		ending_state = ending_state->parent;
+	}
+
+	while (!temp.empty())
+	{
+		ret.push_back(*temp.top());
+		temp.pop();
+	}
+
+	return ret;
+}
+
+std::vector<State> search_algorithm(State *init_state) //now search algorithm has ownership of every state storage and only returns a vector containing a valid path
+{
+
 	std::vector<int> winning_state = get_winning_grid(init_state->n);
-	std::set<std::vector<int>> visited;
+	// std::set<std::vector<int>> visited; old visited set
+	auto cmp_state_grid = [](const State & lhs, const State & rhs){return lhs.grid < rhs.grid;};
+	std::set<State, decltype(cmp_state_grid)> storage; //new visited set behave very similarly only it doesnt store pointers
+	//and it is now called "storage"
+	//we let set handle the allocation and deallocations
 	
-	auto cmp = [](State *lhs, State *rhs) { return lhs->score > rhs->score; };
-	std::priority_queue<State*, std::vector<State*>, decltype(cmp)> toDo(cmp);
+	//toDo still stores pointers since we only want to point to different states that we have previously generated and stored
+	auto cmp = [](const State *lhs, const State *rhs) { return lhs->score > rhs->score; };
+	std::priority_queue<const State*, std::vector<const State*>, decltype(cmp)> toDo(cmp);
 	
 	toDo.push(init_state);
+	storage.insert(*init_state);
 
 	while (!toDo.empty())
 	{
-		State *current = toDo.top();
+		const State *current = toDo.top();
 		toDo.pop();
-		visited.insert(current->get_grid());
-		
 
-		for (auto move : current->get_possible_moves())
+		for (auto & move : current->get_possible_moves()) //very important here to add the & after auto to avoid useless copies
 		{
-			if (*move == winning_state)
-				return move;
+			auto ret = storage.insert(move); //inserting it in storage
+			if (ret.second == false) //if insertion failed becasue there was already a similar state then this value will be false
+				continue;
 
-			if (visited.find(move->get_grid()) == visited.end())
-			{
-				toDo.push(move);
-				continue ;
-			}
-			delete move;
+			if (move == winning_state)
+				return create_path(&(*ret.first));
+			toDo.push(&(*ret.first));
 		}
 	}
 
-	return init_state;
+	return create_path(init_state);
 }

@@ -7,7 +7,7 @@
 			this->score = calculate_score();
 		}
 
-		State::State(std::vector<int> t_grid, State *t_parent) : grid(t_grid), n(sqrt(grid.size())), parent(t_parent), move(t_parent->move + 1)
+		State::State(std::vector<int> t_grid, const State *t_parent) : grid(t_grid), n(sqrt(grid.size())), parent(t_parent), move(t_parent->move + 1)
 		{
 			this->score = calculate_score();
 		}
@@ -65,19 +65,19 @@ void	State::display_grid() const
 	}
 }
 
-State	*swap_tile(State *parent, int index_blank, int index_swap)
+State	swap_tile(const State *parent, int index_blank, int index_swap)
 {
 	std::vector<int> grid = parent->get_grid();
 
 	grid[index_blank] = grid[index_swap];
 	grid[index_swap] = 0;
-	return new State(grid, parent);
+	return State(grid, parent);
 }
 
-std::vector<State*>	State::get_possible_moves()
+std::vector<State>	State::get_possible_moves() const
 {
 	int		index_swap;
-	std::vector<State *>	ret;
+	std::vector<State>	ret;
 
 	int index = this->find_blank();
 	int x = index % this->n;
