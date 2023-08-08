@@ -1,26 +1,17 @@
-#include <time.h>
-#include <cstdlib>
-#include <vector>
-#include <iostream>
-#include <queue>
-#include <stack>
-#include <set>
-
+#include "main.hpp"
 #include "State.hpp"
 
-
-#include <chrono>
+int n = 8;
 using namespace std::chrono;
 
-int n = 4;
 
 std::vector<State> search_algorithm(State *init_state);
 
-std::vector<int>	get_winning_grid(int size)
+grid_format	get_winning_grid(int size)
 {
-	std::vector<int> grid;
+	grid_format grid;
 
-	for (int i = 0; i < size*size; i++)
+	for (cell_size i = 0; i < size*size; i++)
 		grid.push_back(i + 1);
 	grid[grid.size() - 1] = 0;
 
@@ -31,14 +22,17 @@ std::vector<int>	get_winning_grid(int size)
  * pourquoi pas utiliser cette seulemement dans le constructeur vide de State ?
  * */
 
-std::vector<int> generate_grid(int size)
+grid_format generate_grid(int size)
 {
 	//std::shuffle(container.begin(), container.end(), std::random_device());
-	std::vector<int> tiles;
-	std::vector<int> grid;
+	grid_format tiles;
+	grid_format grid;
 	
-	for (int i = 0; i < size*size; i++)
+	for (cell_size i = 0; i < size*size; i++)
 		tiles.push_back(i);
+	
+	for (auto & it : tiles)
+		std::cerr << int(it) << std::endl;
 	
 	while (!tiles.empty())
 	{
@@ -49,7 +43,7 @@ std::vector<int> generate_grid(int size)
 	return grid;
 }
 
-const bool is_solvable(const std::vector<int> &grid)
+const bool is_solvable(const grid_format &grid)
 {
 	int inversion = 0; 
 	int blank_index = grid.size() - 1; //seule position où l'index ne sera pas mis à jour dans la boucle
@@ -162,7 +156,7 @@ std::vector<State> create_path(const State *ending_state)
 std::vector<State> search_algorithm(State *init_state) //now search algorithm has ownership of every state storage and only returns a vector containing a valid path
 {
 
-	std::vector<int> winning_state = get_winning_grid(init_state->n);
+	grid_format winning_state = get_winning_grid(init_state->n);
 	// std::set<std::vector<int>> visited; old visited set
 	auto cmp_state_grid = [](const State & lhs, const State & rhs){return lhs.grid < rhs.grid;};
 	std::set<State, decltype(cmp_state_grid)> storage; //new visited set behave very similarly only it doesnt store pointers
@@ -187,7 +181,7 @@ std::vector<State> search_algorithm(State *init_state) //now search algorithm ha
 			if (ret.second == false) //if insertion failed becasue there was already a similar state then this value will be false
 				continue;
 
-			if (move == winning_state)
+			if (move.grid == winning_state)
 				return create_path(&(*ret.first));
 			toDo.push(&(*ret.first));
 		}

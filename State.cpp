@@ -2,12 +2,12 @@
 
 		State::State() {}
 
-		State::State(std::vector<int> t_grid) : grid(t_grid), n(sqrt(grid.size()))
+		State::State(grid_format t_grid) : grid(t_grid), n(sqrt(grid.size()))
 		{
 			this->score = calculate_score();
 		}
 
-		State::State(std::vector<int> t_grid, const State *t_parent) : grid(t_grid), n(sqrt(grid.size())), parent(t_parent), move(t_parent->move + 1)
+		State::State(grid_format t_grid, const State *t_parent) : grid(t_grid), n(sqrt(grid.size())), parent(t_parent), move(t_parent->move + 1)
 		{
 			this->score = calculate_score();
 		}
@@ -17,14 +17,14 @@ bool		operator==(State const& lhs, State const& rhs)
 	return lhs.grid == rhs.grid;
 }
 
-bool		State::operator==(std::vector<int> cmp_grid)
+bool		State::operator==(grid_format cmp_grid)
 {
 	return this->grid == cmp_grid;
 }
 
 /*--------getter & setter-------*/
 
-std::vector<int>	State::get_grid() const { return this->grid;}
+grid_format	State::get_grid() const { return this->grid;}
 
 /*--------methode-----------*/
 
@@ -59,7 +59,7 @@ void	State::display_grid() const
 {
 	for (int i = 0; i < this->grid.size(); i++)
 	{
-		std::cout << this->grid[i] << " ";
+		std::cout << int(this->grid[i]) << " ";
 		if (i % n == n - 1)
 			std::cout << std::endl;
 	}
@@ -67,7 +67,7 @@ void	State::display_grid() const
 
 State	swap_tile(const State *parent, int index_blank, int index_swap)
 {
-	std::vector<int> grid = parent->get_grid();
+	grid_format grid = parent->get_grid();
 
 	grid[index_blank] = grid[index_swap];
 	grid[index_swap] = 0;
