@@ -5,6 +5,7 @@
 #include <queue>
 #include <stack>
 #include <set>
+#include <algorithm>
 
 #include <chrono>
 using namespace std::chrono;
