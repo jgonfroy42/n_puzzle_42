@@ -1,7 +1,7 @@
 #include "npuzzle.hpp"
 #include "State.hpp"
 
-int n = 3;
+int n = 4;
 
 using namespace std::chrono;
 
@@ -141,7 +141,6 @@ int	search_algorithm(State *init_state)
 	int palier = init_state->score;
 	State winning_state(get_winning_grid(init_state->n));
 
-//créer le chemin dans la fonction init sans avoir besoin de retour ?	
 	while (true)
 	{
 		auto ret = deepening_search(*init_state, 0, palier, winning_state);
@@ -163,13 +162,15 @@ int	search_algorithm(State *init_state)
 
 int	deepening_search(State &state, int g, int palier, State &winning_state)
 {
-
 	int f = g + state.score;
 	if (f > palier)
 		return f;
 	if (state.get_grid() == winning_state)
+	{
+		if (winning_state.path.empty())
+			create_path(&state, winning_state);
 		return 0;
-
+	}
 	int min = INT_MAX;
 	for (auto &move : state.get_possible_moves())
 	{
