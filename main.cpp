@@ -1,11 +1,13 @@
-#include "main.hpp"
+#include "npuzzle.hpp"
 #include "State.hpp"
 
-int n = 8;
+int n = 4;
+
 using namespace std::chrono;
 
 
-std::vector<State> search_algorithm(State *init_state);
+int	 search_algorithm(State *init_state);
+int	deepening_search(State &state, int g, int palier, grid_format &winning_state);
 
 grid_format	get_winning_grid(int size)
 {
@@ -100,40 +102,18 @@ int main()
 	init_state->display_grid();
 
 	auto start = high_resolution_clock::now();
-	std::vector<State> path = search_algorithm(init_state);
+	if (search_algorithm(init_state) == -1)
+		std::cout << "Solution not found" << std::endl;
+	
 	auto stop = high_resolution_clock::now();
-
-	std::cout << std::endl << "---Solution---" << std::endl;
-
-	for (auto & it : path)
-	{
-		it.display_grid();
-		std::cout << std::endl;
-	}
 
 	auto duration = duration_cast<milliseconds>(stop - start);
 	std::cout << std::endl << duration.count() << " ms" << std::endl;
+
 	delete init_state;
 }
 
-//okay so "old" algorithm had a loop where
-/*
-
-	while todo ! empty
-		take the first one
-		insert it to visited
-		expand children
-		for each children
-			if winning state finish
-			else if !already visited push it to todo
-
-
-	new proposition is
-
-	while todo ! empty
-*/
-
-std::vector<State> create_path(const State *ending_state)
+std::vector<State> display_path(const State *ending_state)
 {
 	std::stack<const State *> temp;
 	std::vector<State> ret;
@@ -142,6 +122,7 @@ std::vector<State> create_path(const State *ending_state)
 	{
 		temp.push(ending_state);
 		ending_state = ending_state->parent;
+	
 	}
 
 	while (!temp.empty())
@@ -150,42 +131,61 @@ std::vector<State> create_path(const State *ending_state)
 		temp.pop();
 	}
 
+/*
+ * display dans la boucle plus haut ou transmettre le path au main ?
+ * Comment transmettre le path ?
+ * variable path dans la classe State ? Pb : on ne peut pas récupérer init dans le premier while à causes de const
+ */
+	std::cout << "---Solution---" << std::endl;
+	for (auto step : ret)
+	{
+		step.display_grid();
+		std::cout << std::endl;
+	}
+
 	return ret;
 }
 
-std::vector<State> search_algorithm(State *init_state) //now search algorithm has ownership of every state storage and only returns a vector containing a valid path
+int	search_algorithm(State *init_state)
 {
-
+	int palier = init_state->score;
 	grid_format winning_state = get_winning_grid(init_state->n);
-	// std::set<std::vector<int>> visited; old visited set
-	auto cmp_state_grid = [](const State & lhs, const State & rhs){return lhs.grid < rhs.grid;};
-	std::set<State, decltype(cmp_state_grid)> storage; //new visited set behave very similarly only it doesnt store pointers
-	//and it is now called "storage"
-	//we let set handle the allocation and deallocations
-	
-	//toDo still stores pointers since we only want to point to different states that we have previously generated and stored
-	auto cmp = [](const State *lhs, const State *rhs) { return lhs->score > rhs->score; };
-	std::priority_queue<const State*, std::vector<const State*>, decltype(cmp)> toDo(cmp);
-	
-	toDo.push(init_state);
-	storage.insert(*init_state);
 
-	while (!toDo.empty())
+//créer le chemin dans la fonction init sans avoir besoin de retour ?	
+	while (true)
 	{
-		const State *current = toDo.top();
-		toDo.pop();
-
-		for (auto & move : current->get_possible_moves()) //very important here to add the & after auto to avoid useless copies
-		{
-			auto ret = storage.insert(move); //inserting it in storage
-			if (ret.second == false) //if insertion failed becasue there was already a similar state then this value will be false
-				continue;
-
-			if (move.grid == winning_state)
-				return create_path(&(*ret.first));
-			toDo.push(&(*ret.first));
-		}
+		int ret = deepening_search(*init_state, 0, palier, winning_state);
+		if (ret == 0)
+			return 0;
+		palier = ret;
 	}
 
-	return create_path(init_state);
+	return -1;
+}
+
+int	deepening_search(State &state, int g, int palier, grid_format &winning_state)
+{
+	int f = g + state.score;
+	if (f > palier)
+		return f;
+	if (state.get_grid() == winning_state)
+		return 0;
+
+	int min = INT_MAX;
+	for (auto &move : state.get_possible_moves())
+	{
+		int ret = deepening_search(move, g + 1, palier, winning_state);
+		if (ret == 0)
+		{
+			if (!display)
+			{
+				display_path(&move);
+				display = true;
+			}
+			return 0;
+		}
+		if (ret < min)
+			min = ret;
+	} 
+	return min;
 }

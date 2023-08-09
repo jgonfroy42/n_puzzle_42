@@ -1,5 +1,5 @@
 #pragma once
-#include "main.hpp"
+#include "npuzzle.hpp"
 #include <string>
 #include <vector>
 #include <iostream>
@@ -10,10 +10,11 @@ class State
 {
 	public:
 		grid_format grid;
-		const State		*parent = NULL;
+		const State	*parent = NULL;
 		const int	n = 0;
 		int		move = 0;
 		int		score = -1;
+		std::vector<State>	path;
 
 		State();
 		State(grid_format t_grid);
