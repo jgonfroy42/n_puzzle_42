@@ -1,13 +1,13 @@
 #include "npuzzle.hpp"
 #include "State.hpp"
 
-int n = 4;
+int n = 3;
 
 using namespace std::chrono;
 
 
-int	 search_algorithm(State *init_state);
-int	deepening_search(State &state, int g, int palier, grid_format &winning_state);
+int	search_algorithm(State *init_state);
+int	deepening_search(State &state, int g, int palier, State &winning_state);
 
 grid_format	get_winning_grid(int size)
 {
@@ -100,6 +100,7 @@ int main()
 	std::cout << "---Initial state---" << std::endl;
 		
 	init_state->display_grid();
+	std::cout << std::endl;
 
 	auto start = high_resolution_clock::now();
 	if (search_algorithm(init_state) == -1)
@@ -113,7 +114,7 @@ int main()
 	delete init_state;
 }
 
-std::vector<State> display_path(const State *ending_state)
+std::vector<State> create_path(const State *ending_state, State &winning_state)
 {
 	std::stack<const State *> temp;
 	std::vector<State> ret;
@@ -128,19 +129,8 @@ std::vector<State> display_path(const State *ending_state)
 	while (!temp.empty())
 	{
 		ret.push_back(*temp.top());
+		winning_state.path.push_back(*temp.top());
 		temp.pop();
-	}
-
-/*
- * display dans la boucle plus haut ou transmettre le path au main ?
- * Comment transmettre le path ?
- * variable path dans la classe State ? Pb : on ne peut pas récupérer init dans le premier while à causes de const
- */
-	std::cout << "---Solution---" << std::endl;
-	for (auto step : ret)
-	{
-		step.display_grid();
-		std::cout << std::endl;
 	}
 
 	return ret;
@@ -149,22 +139,31 @@ std::vector<State> display_path(const State *ending_state)
 int	search_algorithm(State *init_state)
 {
 	int palier = init_state->score;
-	grid_format winning_state = get_winning_grid(init_state->n);
+	State winning_state(get_winning_grid(init_state->n));
 
 //créer le chemin dans la fonction init sans avoir besoin de retour ?	
 	while (true)
 	{
-		int ret = deepening_search(*init_state, 0, palier, winning_state);
+		auto ret = deepening_search(*init_state, 0, palier, winning_state);
 		if (ret == 0)
+		{
+			std::cout << "---Solution---" << std::endl;
+			for (auto step : winning_state.path)
+			{
+				step.display_grid();
+				std::cout << std::endl;
+			}
 			return 0;
+		}
 		palier = ret;
 	}
 
 	return -1;
 }
 
-int	deepening_search(State &state, int g, int palier, grid_format &winning_state)
+int	deepening_search(State &state, int g, int palier, State &winning_state)
 {
+
 	int f = g + state.score;
 	if (f > palier)
 		return f;
@@ -174,14 +173,11 @@ int	deepening_search(State &state, int g, int palier, grid_format &winning_state
 	int min = INT_MAX;
 	for (auto &move : state.get_possible_moves())
 	{
-		int ret = deepening_search(move, g + 1, palier, winning_state);
+		auto ret = deepening_search(move, g + 1, palier, winning_state);
 		if (ret == 0)
 		{
-			if (!display)
-			{
-				display_path(&move);
-				display = true;
-			}
+			if (winning_state.path.empty())
+				create_path(&move, winning_state);
 			return 0;
 		}
 		if (ret < min)
