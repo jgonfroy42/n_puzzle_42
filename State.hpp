@@ -33,6 +33,7 @@ class State
 		optimized_grid	get_grid() const;
 		int	find_blank() const;
 		int	calculate_score();
+		int calculate_linear_colision();
 		void	display_grid() const;
 		std::vector<State>	get_possible_moves() const;
 	private:

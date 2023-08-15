@@ -120,9 +120,70 @@ int	State::calculate_score()
 
 		move_needed += abs(x - x_target) + abs(y - y_target);
 	}
+
 	//this->score = move_needed + move;  //get shortest path (g(x) + h(x) ?)
-	this->score = move_needed;
+	//this->score = move_needed;
+	this->score = move_needed + calculate_linear_colision();
 	return this->score;
+}
+//to qualify a linear collisions between two tiles ( a and b )
+//they need to be on the same row or column
+//they need to both have their goal position on the same row or column
+//the goal position of one of the tiles is blocked by the other
+
+//we check goal position of a tile by substracting one from it since tile number 1 will be at index 0
+//(tiles are stored in a contiguous array for memory optimisations)
+int State::calculate_linear_colision()
+{
+	int linear_collisions = 0;
+	for(int col = 0; col < this->n; col++)
+	{
+		for(int row = 0; row < this->n; row++)
+		{
+			int tile_a = this->grid[row * n + col];
+			if (tile_a == 0) continue;
+
+			//if goal position of tile_a is in its current column
+			if (tile_a % this->n == col)
+			{
+				//checking all others in same column ( so increasing row but not changing column yes its bizarre )
+				for(int test_row = row + 1; test_row < this->n; test_row++)
+				{
+					int tile_b = this->grid[test_row * n + col];
+					if (tile_b == 0) continue;
+					
+					//if target pos of tile_b is in current col and
+					//either tile_a is target pos of tile_b or tile_b is target pos of tile_a
+					//then there is a collision
+					if (tile_b % this->n == col &&
+						(	test_row * n + col == tile_a - 1
+						||	row * n + col == tile_b - 1))
+						linear_collisions++;
+				}
+			}
+			
+			//else if goal position of tile_a is in its curren row
+			else if (tile_a / n == row)
+			{
+				//checking all others in same row ( so increasing column but not changing row )
+				for(int test_col = col + 1; test_col < this->n; test_col++)
+				{
+					int tile_b = this->grid[row * n + test_col];
+					if (tile_b == 0) continue;
+
+					//if target pos of tile_b is in current row and
+					//either tile_a is target pos of tile_b or tile_b is target pos of tile_a
+					//then there is a collision
+					if(tile_b / this->n == row &&
+						(	row * n + test_col == tile_a - 1
+						||	row * n + col == tile_b -1))
+						linear_collisions++;
+				}
+
+			}
+		}
+	}
+	return linear_collisions;
 }
 
 void	State::display_grid() const
