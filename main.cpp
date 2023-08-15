@@ -1,7 +1,8 @@
 #include "npuzzle.hpp"
 #include "State.hpp"
 
-int State::n = 3;
+int State::n = 4;
+int State::size = 16;
 
 using namespace std::chrono;
 
@@ -65,7 +66,7 @@ const bool is_solvable(const grid_format &grid)
 	}
  
 	//if n is odd, solvable if number of inversion in even
-	if (State::getSize() % 2 != 0)
+	if (State::getSideSize() % 2 != 0)
 	{
 		if (inversion % 2 == 0)
 			return true;
@@ -76,7 +77,7 @@ const bool is_solvable(const grid_format &grid)
 	//- blank in even row (from bottom) and inversion odd
 	//- or, blank in odd row and inversion even
 
-	int row_from_bottom = State::getSize() - blank_index / State::getSize();
+	int row_from_bottom = State::getSideSize() - blank_index / State::getSideSize();
 	if (row_from_bottom % 2 == 0 && inversion % 2 != 0)
 		return true;
 	if (row_from_bottom % 2 != 0 && inversion % 2 == 0)
@@ -88,17 +89,17 @@ const bool is_solvable(const grid_format &grid)
 int main()
 {
 	srand(time(0));
-	State *init_state = new State(generate_grid(State::getSize()));
-	
+	grid_format start_grid = generate_grid(State::getSideSize());
 
-	while (!is_solvable(init_state->grid))
+	while (!is_solvable(start_grid))
 	{
 		std::cout << "This grid is not solvable, generating a new one." << std::endl << std::endl;
-		init_state->grid = generate_grid(State::getSize());	
+		start_grid = generate_grid(State::getSideSize());	
 	}
 
 	std::cout << "---Initial state---" << std::endl;
 		
+	State *init_state = new State(start_grid);
 	init_state->display_grid();
 	std::cout << std::endl;
 
@@ -116,6 +117,7 @@ int main()
 
 std::vector<State> create_path(const State *ending_state)
 {
+	std::cout << "creating path\n";
 	std::stack<const State *> temp;
 	std::vector<State> ret;
 
@@ -138,7 +140,7 @@ std::vector<State> create_path(const State *ending_state)
 int	search_algorithm(State *init_state)
 {
 	int palier = init_state->score;
-	State winning_state(get_winning_grid(State::getSize()));
+	State winning_state(get_winning_grid(State::getSideSize()));
 	std::vector<State> end_path;
 
 //créer le chemin dans la fonction init sans avoir besoin de retour ?	
@@ -153,9 +155,11 @@ int	search_algorithm(State *init_state)
 				step.display_grid();
 				std::cout << std::endl;
 			}
+			std::cout << "Solutiion found in " << end_path.size() << " steps" << std::endl;
 			return 0;
 		}
 		palier = ret;
+		std::cout << "increasing threshold to :" << palier << std::endl;
 	}
 
 	return -1;
