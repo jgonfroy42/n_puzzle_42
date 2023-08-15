@@ -3,6 +3,7 @@
 
 int State::n = 4;
 int State::size = 16;
+std::default_random_engine rng_engine(1);
 
 using namespace std::chrono;
 
