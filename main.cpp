@@ -1,13 +1,13 @@
 #include "npuzzle.hpp"
 #include "State.hpp"
 
-int n = 3;
+int State::n = 3;
 
 using namespace std::chrono;
 
 
 int	search_algorithm(State *init_state);
-int	deepening_search(State &state, int g, int palier, State &winning_state);
+int deepening_search(State &state, int g, int palier, State &winning_state, std::vector<State> & end_path);
 
 grid_format	get_winning_grid(int size)
 {
@@ -65,7 +65,7 @@ const bool is_solvable(const grid_format &grid)
 	}
  
 	//if n is odd, solvable if number of inversion in even
-	if (n % 2 != 0)
+	if (State::getSize() % 2 != 0)
 	{
 		if (inversion % 2 == 0)
 			return true;
@@ -76,7 +76,7 @@ const bool is_solvable(const grid_format &grid)
 	//- blank in even row (from bottom) and inversion odd
 	//- or, blank in odd row and inversion even
 
-	int row_from_bottom = n - blank_index / n;
+	int row_from_bottom = State::getSize() - blank_index / State::getSize();
 	if (row_from_bottom % 2 == 0 && inversion % 2 != 0)
 		return true;
 	if (row_from_bottom % 2 != 0 && inversion % 2 == 0)
@@ -88,13 +88,13 @@ const bool is_solvable(const grid_format &grid)
 int main()
 {
 	srand(time(0));
-	State *init_state = new State(generate_grid(n));
+	State *init_state = new State(generate_grid(State::getSize()));
 	
 
 	while (!is_solvable(init_state->grid))
 	{
 		std::cout << "This grid is not solvable, generating a new one." << std::endl << std::endl;
-		init_state->grid = generate_grid(n);	
+		init_state->grid = generate_grid(State::getSize());	
 	}
 
 	std::cout << "---Initial state---" << std::endl;
@@ -114,7 +114,7 @@ int main()
 	delete init_state;
 }
 
-std::vector<State> create_path(const State *ending_state, State &winning_state)
+std::vector<State> create_path(const State *ending_state)
 {
 	std::stack<const State *> temp;
 	std::vector<State> ret;
@@ -129,7 +129,6 @@ std::vector<State> create_path(const State *ending_state, State &winning_state)
 	while (!temp.empty())
 	{
 		ret.push_back(*temp.top());
-		winning_state.path.push_back(*temp.top());
 		temp.pop();
 	}
 
@@ -139,16 +138,17 @@ std::vector<State> create_path(const State *ending_state, State &winning_state)
 int	search_algorithm(State *init_state)
 {
 	int palier = init_state->score;
-	State winning_state(get_winning_grid(init_state->n));
+	State winning_state(get_winning_grid(State::getSize()));
+	std::vector<State> end_path;
 
 //créer le chemin dans la fonction init sans avoir besoin de retour ?	
 	while (true)
 	{
-		auto ret = deepening_search(*init_state, 0, palier, winning_state);
+		auto ret = deepening_search(*init_state, 0, palier, winning_state, end_path);
 		if (ret == 0)
 		{
 			std::cout << "---Solution---" << std::endl;
-			for (auto step : winning_state.path)
+			for (auto step : end_path)
 			{
 				step.display_grid();
 				std::cout << std::endl;
@@ -161,23 +161,23 @@ int	search_algorithm(State *init_state)
 	return -1;
 }
 
-int	deepening_search(State &state, int g, int palier, State &winning_state)
+int deepening_search(State &state, int g, int palier, State &winning_state, std::vector<State> & end_path)
 {
 
 	int f = g + state.score;
 	if (f > palier)
 		return f;
-	if (state.get_grid() == winning_state)
+	if (state == winning_state)
 		return 0;
 
 	int min = INT_MAX;
 	for (auto &move : state.get_possible_moves())
 	{
-		auto ret = deepening_search(move, g + 1, palier, winning_state);
+		auto ret = deepening_search(move, g + 1, palier, winning_state, end_path);
 		if (ret == 0)
 		{
-			if (winning_state.path.empty())
-				create_path(&move, winning_state);
+			if (end_path.empty())
+				end_path = create_path(&move);
 			return 0;
 		}
 		if (ret < min)

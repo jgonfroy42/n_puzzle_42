@@ -1,20 +1,25 @@
 #include "State.hpp"
 
-		State::State() {}
+State::State() {}
 
-		State::State(grid_format t_grid) : grid(t_grid), n(sqrt(grid.size()))
-		{
-			this->score = calculate_score();
-		}
-
-		State::State(grid_format t_grid, const State *t_parent) : grid(t_grid), n(sqrt(grid.size())), parent(t_parent), move(t_parent->move + 1)
-		{
-			this->score = calculate_score();
-		}
-
-bool		operator==(State const& lhs, State const& rhs)
+//first constructor called by main to init the start state
+State::State(grid_format t_grid)
+: grid(t_grid)
 {
-	return lhs.grid == rhs.grid;
+	this->n = sqrt(t_grid.size());
+	this->score = calculate_score();
+}
+
+//constructor called when creating a child
+State::State(grid_format t_grid, const State *t_parent)
+: grid(t_grid), parent(t_parent), move(t_parent->move + 1)
+{
+	this->score = calculate_score();
+}
+
+bool		State::operator==(State const& rhs)
+{
+	return this->grid == rhs.grid;
 }
 
 bool		State::operator==(grid_format cmp_grid)
@@ -25,6 +30,10 @@ bool		State::operator==(grid_format cmp_grid)
 /*--------getter & setter-------*/
 
 grid_format	State::get_grid() const { return this->grid;}
+
+// void State::setSize(const int & n) { State::n = n;}
+
+int State::getSize() { return State::n;}
 
 /*--------methode-----------*/
 
@@ -78,6 +87,7 @@ std::vector<State>	State::get_possible_moves() const
 {
 	int		index_swap;
 	std::vector<State>	ret;
+	ret.reserve(4);
 
 	int index = this->find_blank();
 	int x = index % this->n;
