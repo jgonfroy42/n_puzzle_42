@@ -251,6 +251,6 @@ std::vector<State>	State::get_possible_moves() const
 		ret.push_back(State(this, index, index_swap));
 	}
 
-	std::shuffle(ret.begin(), ret.end(), rng_engine);
+	// std::shuffle(ret.begin(), ret.end(), rng_engine);
 	return ret;
 }

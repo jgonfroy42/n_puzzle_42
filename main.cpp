@@ -1,8 +1,8 @@
 #include "npuzzle.hpp"
 #include "State.hpp"
 
-int State::n = 4;
-int State::size = 16;
+int State::n = 3;
+int State::size = State::getSideSize() * State::getSideSize();
 std::default_random_engine rng_engine(1);
 
 using namespace std::chrono;
@@ -45,6 +45,13 @@ grid_format generate_grid(int size)
 		tiles.erase(tiles.begin() + random);
 	}
 	return grid;
+}
+
+grid_format generate_custom_grid()
+{
+
+	std::vector<cell_size> ret = {0, 8, 3, 6, 7, 5, 4, 1, 2};
+	return ret;
 }
 
 const bool is_solvable(const grid_format &grid)
@@ -90,7 +97,8 @@ const bool is_solvable(const grid_format &grid)
 int main()
 {
 	srand(time(0));
-	grid_format start_grid = generate_grid(State::getSideSize());
+	// grid_format start_grid = generate_grid(State::getSideSize());
+	grid_format start_grid = {0, 8, 3, 6, 7, 5, 4, 1, 2};
 
 	while (!is_solvable(start_grid))
 	{
