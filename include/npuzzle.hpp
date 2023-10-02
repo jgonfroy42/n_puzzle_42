@@ -18,3 +18,5 @@ typedef std::vector<cell_size> grid_format;
 typedef cell_size * optimized_grid;
 
 extern std::default_random_engine rng_engine;
+
+#define MAX_SIZE 15
