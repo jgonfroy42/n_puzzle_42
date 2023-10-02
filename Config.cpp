@@ -133,6 +133,8 @@ bool Config::_readGrid()
 			i++;
 
 			line.erase(0, pos);
+			while(isspace(line[0]))
+				line.erase(line.begin());
 		}
 		if (j < this->_grid_size)
 		{
