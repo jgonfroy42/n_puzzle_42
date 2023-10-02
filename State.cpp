@@ -15,8 +15,19 @@ State::State(grid_format t_grid)
 	this->score = calculate_score();
 }
 
+State::State(size_t n, const std::vector<int> & grid)
+{
+	this->n = n;
+	this->size = n * n;
+	this->grid = new cell_size[this->size];
+
+	for(int i = 0; i < this->size; i++)
+		this->grid[i] = grid[i];
+	
+	this->score = calculate_score();
+}
+
 State::State(const State & other)
-: score(other.score), parent(other.parent), move(other.move)
 {
 	this->grid = new cell_size[this->size];
 
@@ -90,6 +101,12 @@ optimized_grid	State::get_grid() const { return this->grid;}
 
 int State::getSideSize() { return State::n;}
 int State::getTotalSize() {return State::size;}
+
+void State::setSize(const int & n)
+{
+	State::n = n;
+	State::size = n * n;
+}
 
 /*--------methode-----------*/
 
