@@ -1,8 +1,10 @@
 #include "npuzzle.hpp"
 #include "State.hpp"
 #include "Config.hpp"
+#define SIZE 6
 
-int State::n = 3;
+
+int State::n = 0;
 int State::size = State::getSideSize() * State::getSideSize();
 std::default_random_engine rng_engine(1);
 
@@ -10,6 +12,7 @@ using namespace std::chrono;
 
 
 int	search_algorithm(State *init_state);
+int a_star(State *init_state);
 int deepening_search(State &state, int g, int palier, State &winning_state, std::vector<State> & end_path);
 
 grid_format	get_winning_grid(int size)
@@ -33,7 +36,7 @@ grid_format generate_grid(int size)
 	grid_format tiles;
 	grid_format grid;
 	
-	for (cell_size i = 0; i < size*size; i++)
+	for (cell_size i = 0; (int)i < size*size; i++)
 		tiles.push_back(i);
 	
 	for (auto & it : tiles)
@@ -60,6 +63,7 @@ bool is_solvable(const grid_format &grid)
 	int inversion = 0; 
 	int blank_index = grid.size() - 1; //seule position où l'index ne sera pas mis à jour dans la boucle
 
+	int nsize = sqrt(grid.size());
 	//testing that the grid has valid tiles
 	grid_format copy = grid;
 	std::sort(copy.begin(), copy.end());
@@ -86,7 +90,7 @@ bool is_solvable(const grid_format &grid)
 	}
  
 	//if n is odd, solvable if number of inversion in even
-	if (State::getSideSize() % 2 != 0)
+	if (nsize % 2 != 0)
 	{
 		if (inversion % 2 == 0)
 			return true;
@@ -97,7 +101,7 @@ bool is_solvable(const grid_format &grid)
 	//- blank in even row (from bottom) and inversion odd
 	//- or, blank in odd row and inversion even
 
-	int row_from_bottom = State::getSideSize() - blank_index / State::getSideSize();
+	int row_from_bottom = nsize - blank_index / nsize;
 	if (row_from_bottom % 2 == 0 && inversion % 2 != 0)
 		return true;
 	if (row_from_bottom % 2 != 0 && inversion % 2 == 0)
@@ -115,13 +119,13 @@ int main(int argc, char **argv)
 
 	if (argc == 1)
 	{
-		// grid_format start_grid = generate_grid(State::getSideSize());
-		grid_format start_grid = {0, 8, 3, 6, 7, 5, 4, 1, 2};
+		grid_format start_grid = generate_grid(SIZE);
+		// grid_format start_grid = {0, 8, 3, 6, 7, 5, 4, 1, 2};
 
 		while (!is_solvable(start_grid))
 		{
 			std::cout << "This grid is not solvable, generating a new one." << std::endl << std::endl;
-			start_grid = generate_grid(State::getSideSize());	
+			start_grid = generate_grid(SIZE);	
 		}
 		init_state = new State(start_grid);
 	}
@@ -152,9 +156,12 @@ int main(int argc, char **argv)
 	std::cout << std::endl;
 
 	auto start = high_resolution_clock::now();
-	if (search_algorithm(init_state) == -1)
-		std::cout << "Solution not found" << std::endl;
+	// if (search_algorithm(init_state) == -1)
+		// std::cout << "Solution not found" << std::endl;
 	
+	if (a_star(init_state) == -1)
+		std::cout << "Solution not found" << std::endl;
+
 	auto stop = high_resolution_clock::now();
 
 	auto duration = duration_cast<milliseconds>(stop - start);
@@ -236,4 +243,56 @@ int deepening_search(State &state, int g, int palier, State &winning_state, std:
 			min = ret;
 	} 
 	return min;
+}
+
+int a_star(State *init_state)
+{
+	State winning_state(get_winning_grid(init_state->getSideSize()));
+
+	// auto cmp_ptr = [](State *lhs, State *rhs) {return *lhs < *rhs;};
+	auto cmp = [](State *lhs, State *rhs) { return lhs->score > rhs->score;};
+
+	// std::set<State*, decltype(cmp_ptr)> visited(cmp_ptr);
+
+	std::unordered_map<std::string, State*> visited_bis;
+	std::string key;
+
+	std::priority_queue<State*, std::vector<State*>, decltype(cmp)> toDo(cmp);
+
+	toDo.push(init_state);
+
+	while(!toDo.empty())
+	{
+		State *current = toDo.top();
+		toDo.pop();
+		// visited.insert(current);
+		key.assign(reinterpret_cast<char *>(current->get_grid()), current->getTotalSize() / (sizeof(int) / sizeof(cell_size)));
+		visited_bis.insert(std::make_pair(key, current));
+
+		for (auto & move : current->get_possible_moves())
+		{
+			key.assign(reinterpret_cast<char *>(move.get_grid()), move.getTotalSize() / (sizeof(int) / sizeof(cell_size)));
+			if (move == winning_state)
+			{
+				std::cout << "---Solution---" << std::endl;
+				auto path = create_path(&move);
+				for (auto step : path)
+				{
+					step.display_grid();
+					std::cout << std::endl;
+				}
+				std::cout << "Solution found in " << path.size() << " steps" << std::endl;
+				return 0;
+			}
+
+			if(visited_bis.find(key) == visited_bis.end())
+			{
+				State * new_move = new State(move);
+				toDo.push(new_move);
+				visited_bis.insert(std::make_pair(key, new_move));
+				continue;
+			}
+		}
+	}
+	return 1;
 }
