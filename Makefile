@@ -1,10 +1,7 @@
 NAME = npuzzle
 
-TEST_MAIN = main_test.cpp
-
-MAIN = main.cpp
-
-SRCS =	Config.cpp \
+SRCS =	main.cpp \
+		Config.cpp \
 		State.cpp
 
 CXX = c++
@@ -37,8 +34,6 @@ fclean: clean
 
 re: clean
 	@make all
-
-test
 
 -include $(DEPS)
 

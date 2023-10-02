@@ -1,6 +1,7 @@
 #include "npuzzle.hpp"
 #include <fstream>
 #include <map>
+#include <cstring>
 
 enum config_error
 {
@@ -40,6 +41,7 @@ private:
 
 	//error handling
 	config_error error_type;
+	int			last_errno = 0;
 
 	bool	_readSize();
 	bool	_readGrid();

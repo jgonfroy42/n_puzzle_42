@@ -21,7 +21,7 @@ class State
 		~State();
 		State(const State & other);
 		State(grid_format t_grid);
-		State(size_t n, const std::vector<int> & grid);
+		// State(const std::vector<int> & grid);
 		// State(grid_format t_grid, const State* t_parent);
 
 		static int getSideSize();

@@ -47,7 +47,10 @@ bool Config::loadNewFile(const std::string & filename)
 	this->_config_file.open(filename);
 
 	if (this->_config_file.fail())
+	{
+		last_errno = errno;
 		return false;
+	}
 
 	//file reading
 
@@ -161,6 +164,10 @@ void Config::printError(void) const
 	if (_current_line != 0)
 	{
 		std::cerr << "line [" << _current_line << "]: ";
+		std::cerr << error_to_str[error_type] << std::endl;
 	}
-	std::cerr << error_to_str[error_type] << std::endl;
+	else
+	{
+		std::cerr << strerror(this->last_errno) << '\n';
+	}
 }

@@ -1,5 +1,6 @@
 #include "npuzzle.hpp"
 #include "State.hpp"
+#include "Config.hpp"
 
 int State::n = 3;
 int State::size = State::getSideSize() * State::getSideSize();
@@ -50,23 +51,34 @@ grid_format generate_grid(int size)
 grid_format generate_custom_grid()
 {
 
-	std::vector<cell_size> ret = {0, 8, 3, 6, 7, 5, 4, 1, 2};
+	grid_format ret = {0, 8, 3, 6, 7, 5, 4, 1, 2};
 	return ret;
 }
 
-const bool is_solvable(const grid_format &grid)
+bool is_solvable(const grid_format &grid)
 {
 	int inversion = 0; 
 	int blank_index = grid.size() - 1; //seule position où l'index ne sera pas mis à jour dans la boucle
 
-	for (int i = 0; i < grid.size() - 1; i++)
+	//testing that the grid has valid tiles
+	grid_format copy = grid;
+	std::sort(copy.begin(), copy.end());
+
+	for(int i = 0;i < (int)copy.size(); i++)
+	{
+		if (copy[i] != i)
+			return false;
+	}
+
+
+	for (size_t i = 0; i < grid.size() - 1; i++)
 	{
 		if (grid[i] == 0)
 		{
 			blank_index = i;
 			continue;
  		}
-		for (int j = i + 1; j < grid.size(); j++)
+		for (size_t j = i + 1; j < grid.size(); j++)
 		{
 			if (grid[j] != 0 && grid[j] < grid[i])
 				inversion++;
@@ -94,21 +106,48 @@ const bool is_solvable(const grid_format &grid)
 	return false;
 }
 
-int main()
+int main(int argc, char **argv)
 {
 	srand(time(0));
-	// grid_format start_grid = generate_grid(State::getSideSize());
-	grid_format start_grid = {0, 8, 3, 6, 7, 5, 4, 1, 2};
 
-	while (!is_solvable(start_grid))
+	State * init_state;
+	Config config;
+
+	if (argc == 1)
 	{
-		std::cout << "This grid is not solvable, generating a new one." << std::endl << std::endl;
-		start_grid = generate_grid(State::getSideSize());	
+		// grid_format start_grid = generate_grid(State::getSideSize());
+		grid_format start_grid = {0, 8, 3, 6, 7, 5, 4, 1, 2};
+
+		while (!is_solvable(start_grid))
+		{
+			std::cout << "This grid is not solvable, generating a new one." << std::endl << std::endl;
+			start_grid = generate_grid(State::getSideSize());	
+		}
+		init_state = new State(start_grid);
+	}
+	else
+	{
+		if(!config.loadNewFile(argv[1]))
+		{
+			config.printError();
+			exit(EXIT_FAILURE);
+		}
+		if (!is_solvable(config.getGrid()))
+		{
+			std::cerr << "This grid is invalid or is unsolvable\n";
+			exit(EXIT_FAILURE);
+		}
+		init_state = new State(config.getGrid());
+	}
+
+	if(!init_state)
+	{
+		std::cerr << "Fatal error\n";
+		exit(EXIT_FAILURE);
 	}
 
 	std::cout << "---Initial state---" << std::endl;
 		
-	State *init_state = new State(start_grid);
 	init_state->display_grid();
 	std::cout << std::endl;
 
@@ -164,7 +203,7 @@ int	search_algorithm(State *init_state)
 				step.display_grid();
 				std::cout << std::endl;
 			}
-			std::cout << "Solutiion found in " << end_path.size() << " steps" << std::endl;
+			std::cout << "Solution found in " << end_path.size() << " steps" << std::endl;
 			return 0;
 		}
 		palier = ret;

@@ -15,17 +15,17 @@ State::State(grid_format t_grid)
 	this->score = calculate_score();
 }
 
-State::State(size_t n, const std::vector<int> & grid)
-{
-	this->n = n;
-	this->size = n * n;
-	this->grid = new cell_size[this->size];
+// State::State(const std::vector<int> & grid)
+// {
+// 	this->n = sqrt(grid.size());
+// 	this->size = grid.size();
+// 	this->grid = new cell_size[this->size];
 
-	for(int i = 0; i < this->size; i++)
-		this->grid[i] = grid[i];
+// 	for(int i = 0; i < this->size; i++)
+// 		this->grid[i] = grid[i];
 	
-	this->score = calculate_score();
-}
+// 	this->score = calculate_score();
+// }
 
 State::State(const State & other)
 {
