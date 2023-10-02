@@ -28,6 +28,7 @@ State::State(grid_format t_grid)
 // }
 
 State::State(const State & other)
+:parent(other.parent), move(other.move), score(other.score)
 {
 	this->grid = new cell_size[this->size];
 
@@ -73,7 +74,7 @@ State &		State::operator=(State const & other)
 	return *this;
 }
 
-bool		State::operator==(State const& rhs)
+bool		State::operator==(State const& rhs) const
 {
 	for(int i = 0; i < this->size; i++)
 	{
@@ -83,7 +84,19 @@ bool		State::operator==(State const& rhs)
 	return true;
 }
 
-bool		State::operator==(grid_format cmp_grid)
+bool		State::operator<(const State & rhs) const
+{
+	for(int i = 0; i < this->size; i++)
+	{
+		if (this->grid[i] < rhs.grid[i])
+			return true;
+		else if (this->grid[i] > rhs.grid[i])
+			return false;
+	}
+	return false;
+}
+
+bool		State::operator==(grid_format cmp_grid) const
 {
 	for(int i = 0; i < this->size; i++)
 	{
@@ -140,7 +153,7 @@ int	State::calculate_score()
 
 	//this->score = move_needed + move;  //get shortest path (g(x) + h(x) ?)
 	//this->score = move_needed;
-	this->score = move_needed + calculate_linear_colision();
+	this->score = move_needed + calculate_linear_colision() + move;
 	return this->score;
 }
 //to qualify a linear collisions between two tiles ( a and b )
