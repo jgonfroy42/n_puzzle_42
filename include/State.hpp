@@ -29,8 +29,9 @@ class State
 		static void setSize(const int & n);
 		// void setSize(const int & n);
 		
-		bool	operator==(grid_format cmp_grid);
-		bool operator==(const State & other);
+		bool	operator==(grid_format cmp_grid) const;
+		bool operator==(const State & other) const ;
+		bool operator<(const State & other) const;
 		State & operator=(const State & other);
 		optimized_grid	get_grid() const;
 		int	find_blank() const;

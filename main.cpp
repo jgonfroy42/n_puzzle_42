@@ -266,12 +266,13 @@ int a_star(State *init_state)
 		State *current = toDo.top();
 		toDo.pop();
 		// visited.insert(current);
-		key.assign(reinterpret_cast<char *>(current->get_grid()), current->getTotalSize() / (sizeof(int) / sizeof(cell_size)));
+		key.assign(reinterpret_cast<char *>(current->get_grid()), current->getTotalSize() * sizeof(cell_size) / sizeof(int));
+		std::cerr << key << std::endl;
 		visited_bis.insert(std::make_pair(key, current));
 
 		for (auto & move : current->get_possible_moves())
 		{
-			key.assign(reinterpret_cast<char *>(move.get_grid()), move.getTotalSize() / (sizeof(int) / sizeof(cell_size)));
+			key.assign(reinterpret_cast<char *>(move.get_grid()), move.getTotalSize() * sizeof(cell_size) / sizeof(int));
 			if (move == winning_state)
 			{
 				std::cout << "---Solution---" << std::endl;
@@ -294,5 +295,5 @@ int a_star(State *init_state)
 			}
 		}
 	}
-	return 1;
+	return -1;
 }

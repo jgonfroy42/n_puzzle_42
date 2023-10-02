@@ -6,7 +6,7 @@ SRCS =	main.cpp \
 
 CXX = c++
 
-CXXFLAGS = -Wall -Wextra -Werror -g3
+CXXFLAGS = -Wall -Wextra -Werror
 
 CPPFLAGS = -MMD -I ./include/
 
