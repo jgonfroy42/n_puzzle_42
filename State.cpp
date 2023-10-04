@@ -5,6 +5,7 @@ State::State() {}
 //first constructor called by main to init the start state
 State::State(grid_format t_grid)
 {
+	State::total_states++;
 	this->n = sqrt(t_grid.size());
 	this->size = t_grid.size();
 	this->grid = new cell_size[this->size];
@@ -13,6 +14,9 @@ State::State(grid_format t_grid)
 		this->grid[i] = t_grid[i];
 
 	this->score = calculate_score();
+	if (this->hash_grid.empty())
+		this->generate_hash_grid();
+	this->calculate_start_hash();
 }
 
 // State::State(const std::vector<int> & grid)
@@ -28,25 +32,24 @@ State::State(grid_format t_grid)
 // }
 
 State::State(const State & other)
-:parent(other.parent), move(other.move), score(other.score)
 {
-	this->grid = new cell_size[this->size];
-
-	std::memcpy(this->grid, other.grid, this->size);
+	*this = other;
 }
 
 //private constructor called when creating a child
 State::State(const State * parent, int index_blank, int index_swap)
 {
+	State::total_states++;
 	this->grid = new cell_size[this->size];
 
+	this->hash = parent->hash;
 	std::memcpy(this->grid, parent->grid, this->size);
-
+	calculate_hash(index_blank, index_swap);
 	std::swap(this->grid[index_blank], this->grid[index_swap]);
 
-	this->score = calculate_score();
-	this->move = parent->move + 1;
 	this->parent = parent;
+	this->move = parent->move + 1;
+	this->score = calculate_score();
 }
 
 // State::State(grid_format t_grid, const State *t_parent)
@@ -70,6 +73,7 @@ State &		State::operator=(State const & other)
 	this->score = other.score;
 	this->parent = other.parent;
 	this->move = other.move;
+	this->hash = other.hash;
 
 	return *this;
 }
@@ -109,11 +113,13 @@ bool		State::operator==(grid_format cmp_grid) const
 /*--------getter & setter-------*/
 
 optimized_grid	State::get_grid() const { return this->grid;}
+uint64_t		State::get_hash() const {return this->hash;}
 
 // void State::setSize(const int & n) { State::n = n;}
 
 int State::getSideSize() { return State::n;}
 int State::getTotalSize() {return State::size;}
+int State::getTotalStates() {return State::total_states;}
 
 void State::setSize(const int & n)
 {
@@ -153,7 +159,7 @@ int	State::calculate_score()
 
 	//this->score = move_needed + move;  //get shortest path (g(x) + h(x) ?)
 	//this->score = move_needed;
-	this->score = move_needed + calculate_linear_colision() + move;
+	this->score = move_needed + calculate_linear_colision();
 	return this->score;
 }
 //to qualify a linear collisions between two tiles ( a and b )
@@ -235,10 +241,10 @@ void	State::display_grid() const
 // 	return State(grid, parent);
 // }
 
-std::vector<State>	State::get_possible_moves() const
+std::vector<State* >	State::get_possible_moves() const
 {
 	int		index_swap;
-	std::vector<State>	ret;
+	std::vector<State *>	ret;
 	ret.reserve(4);
 
 	int index = this->find_blank();
@@ -251,7 +257,7 @@ std::vector<State>	State::get_possible_moves() const
 	if (y < n - 1)
 	{
 		index_swap = (y + 1) * n + x;	
-		ret.push_back(State(this, index, index_swap));
+		ret.push_back(new State(this, index, index_swap));
 	}
 
 	/*
@@ -260,7 +266,7 @@ std::vector<State>	State::get_possible_moves() const
 	if (y > 0)
 	{
 		index_swap = (y - 1) * n + x;	
-		ret.push_back(State(this, index, index_swap));
+		ret.push_back(new State(this, index, index_swap));
 	}
 
 	/*
@@ -269,7 +275,7 @@ std::vector<State>	State::get_possible_moves() const
 	if (x < n - 1)
 	{
 		index_swap = y * n + x + 1;	
-		ret.push_back(State(this, index, index_swap));
+		ret.push_back(new State(this, index, index_swap));
 	}
 
 	/*
@@ -278,9 +284,45 @@ std::vector<State>	State::get_possible_moves() const
 	if (x > 0)
 	{
 		index_swap = y * n + x - 1;	
-		ret.push_back(State(this, index, index_swap));
+		ret.push_back(new State(this, index, index_swap));
 	}
 
-	// std::shuffle(ret.begin(), ret.end(), rng_engine);
+	std::shuffle(ret.begin(), ret.end(), rng_engine);
 	return ret;
+}
+
+void	State::calculate_start_hash()
+{
+	this->hash = (std::rand() << sizeof(this->hash) / 2) |  std::rand();
+
+	for(int i = 0; i < this->size; i++)
+		this->hash ^= this->hash_grid[this->grid[i]][i];
+}
+
+void	State::calculate_hash(int index_blank, int index_swap)
+{
+	int value_swap = this->grid[index_swap];
+
+	//removing 0 and swapping tiles from hash
+
+	this->hash ^= this->hash_grid[0][index_blank];
+	this->hash ^= this->hash_grid[value_swap][index_swap];
+
+	//adding the new positions
+
+	this->hash ^= this->hash_grid[0][index_swap];
+	this->hash ^= this->hash_grid[value_swap][index_blank];
+}
+
+void	State::generate_hash_grid()
+{
+	if (State::size == 0) return;
+
+	State::hash_grid.clear();
+	State::hash_grid.resize(State::size);
+	for(int i = 0; i < State::size; i++)
+	{
+		for(int j = 0; j < State::size; j++)
+			State::hash_grid[i].push_back(std::rand());
+	}
 }

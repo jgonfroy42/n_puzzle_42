@@ -1,11 +1,15 @@
 #include "npuzzle.hpp"
 #include "State.hpp"
 #include "Config.hpp"
-#define SIZE 6
+#include "hashMap.hpp"
+#include <memory>
+#define SIZE 7
 
 
 int State::n = 0;
 int State::size = State::getSideSize() * State::getSideSize();
+size_t State::total_states = 0;
+std::vector<std::vector<uint64_t>> State::hash_grid;
 std::default_random_engine rng_engine(1);
 
 using namespace std::chrono;
@@ -127,6 +131,7 @@ int main(int argc, char **argv)
 			std::cout << "This grid is not solvable, generating a new one." << std::endl << std::endl;
 			start_grid = generate_grid(SIZE);	
 		}
+		std::cerr << "before problems" << std::endl;
 		init_state = new State(start_grid);
 	}
 	else
@@ -159,15 +164,17 @@ int main(int argc, char **argv)
 	// if (search_algorithm(init_state) == -1)
 		// std::cout << "Solution not found" << std::endl;
 	
-	if (a_star(init_state) == -1)
+	int ret = a_star(init_state);
+	if (ret == -1)
 		std::cout << "Solution not found" << std::endl;
 
 	auto stop = high_resolution_clock::now();
-
 	auto duration = duration_cast<milliseconds>(stop - start);
-	std::cout << std::endl << duration.count() << " ms" << std::endl;
+	std::cerr << "total number of states:" << State::getTotalStates() << std::endl;
+	std::cerr << "total number of iterations: " << ret << std::endl;
+	std::cerr << "iterations per ms: " << ret / duration.count() << "/ms" << std::endl;
 
-	delete init_state;
+	std::cout << std::endl << duration.count() << " ms" << std::endl;
 }
 
 std::vector<State> create_path(const State *ending_state)
@@ -192,108 +199,125 @@ std::vector<State> create_path(const State *ending_state)
 	return ret;
 }
 
-int	search_algorithm(State *init_state)
-{
-	int palier = init_state->score;
-	State winning_state(get_winning_grid(State::getSideSize()));
-	std::vector<State> end_path;
+// int	search_algorithm(State *init_state)
+// {
+// 	int palier = init_state->score;
+// 	State winning_state(get_winning_grid(State::getSideSize()));
+// 	std::vector<State> end_path;
 
-//créer le chemin dans la fonction init sans avoir besoin de retour ?	
-	while (true)
-	{
-		auto ret = deepening_search(*init_state, 0, palier, winning_state, end_path);
-		if (ret == 0)
-		{
-			std::cout << "---Solution---" << std::endl;
-			for (auto step : end_path)
-			{
-				step.display_grid();
-				std::cout << std::endl;
-			}
-			std::cout << "Solution found in " << end_path.size() << " steps" << std::endl;
-			return 0;
-		}
-		palier = ret;
-		std::cout << "increasing threshold to :" << palier << std::endl;
-	}
+// //créer le chemin dans la fonction init sans avoir besoin de retour ?	
+// 	while (true)
+// 	{
+// 		auto ret = deepening_search(*init_state, 0, palier, winning_state, end_path);
+// 		if (ret == 0)
+// 		{
+// 			std::cout << "---Solution---" << std::endl;
+// 			for (auto step : end_path)
+// 			{
+// 				step.display_grid();
+// 				std::cout << std::endl;
+// 			}
+// 			std::cout << "Solution found in " << end_path.size() << " steps" << std::endl;
+// 			return 0;
+// 		}
+// 		palier = ret;
+// 		std::cout << "increasing threshold to :" << palier << std::endl;
+// 	}
 
-	return -1;
-}
+// 	return -1;
+// }
 
-int deepening_search(State &state, int g, int palier, State &winning_state, std::vector<State> & end_path)
-{
+// int deepening_search(State &state, int g, int palier, State &winning_state, std::vector<State> & end_path)
+// {
 
-	int f = g + state.score;
-	if (f > palier)
-		return f;
-	if (state == winning_state)
-		return 0;
+// 	int f = g + state.score;
+// 	if (f > palier)
+// 		return f;
+// 	if (state == winning_state)
+// 		return 0;
 
-	int min = INT_MAX;
-	for (auto &move : state.get_possible_moves())
-	{
-		auto ret = deepening_search(move, g + 1, palier, winning_state, end_path);
-		if (ret == 0)
-		{
-			if (end_path.empty())
-				end_path = create_path(&move);
-			return 0;
-		}
-		if (ret < min)
-			min = ret;
-	} 
-	return min;
-}
+// 	int min = INT_MAX;
+// 	for (auto &move : state.get_possible_moves())
+// 	{
+// 		auto ret = deepening_search(move, g + 1, palier, winning_state, end_path);
+// 		if (ret == 0)
+// 		{
+// 			if (end_path.empty())
+// 				end_path = create_path(&move);
+// 			return 0;
+// 		}
+// 		if (ret < min)
+// 			min = ret;
+// 	} 
+// 	return min;
+// }
 
 int a_star(State *init_state)
 {
 	State winning_state(get_winning_grid(init_state->getSideSize()));
+	size_t iterations = 0;
 
 	// auto cmp_ptr = [](State *lhs, State *rhs) {return *lhs < *rhs;};
 	auto cmp = [](State *lhs, State *rhs) { return lhs->score > rhs->score;};
 
 	// std::set<State*, decltype(cmp_ptr)> visited(cmp_ptr);
 
-	std::unordered_map<std::string, State*> visited_bis;
+	std::unordered_map<uint64_t, State *> visited_bis;
+	// HashMap visited_bis;
 	std::string key;
 
 	std::priority_queue<State*, std::vector<State*>, decltype(cmp)> toDo(cmp);
 
 	toDo.push(init_state);
+	// key.assign(reinterpret_cast<char *>(init_state->get_grid()), init_state->getTotalSize() * sizeof(cell_size));
+	// visited_bis.insert(std::make_pair(key, init_state));
+	visited_bis.insert(std::make_pair(init_state->get_hash(), init_state));
+	// visited_bis.insert(init_state->get_hash(), init_state);
 
 	while(!toDo.empty())
 	{
 		State *current = toDo.top();
 		toDo.pop();
 		// visited.insert(current);
-		key.assign(reinterpret_cast<char *>(current->get_grid()), current->getTotalSize() * sizeof(cell_size) / sizeof(int));
-		std::cerr << key << std::endl;
-		visited_bis.insert(std::make_pair(key, current));
+		// std::cerr << key << std::endl;
+		// visited_bis.insert(std::make_pair(current->get_hash(), current));
+		// current->display_grid();
+		// std::cout << std::endl;
+
 
 		for (auto & move : current->get_possible_moves())
 		{
-			key.assign(reinterpret_cast<char *>(move.get_grid()), move.getTotalSize() * sizeof(cell_size) / sizeof(int));
-			if (move == winning_state)
+			// key.assign(reinterpret_cast<char *>(move->get_grid()), move->getTotalSize() * sizeof(cell_size));
+			if (*current == winning_state)
 			{
 				std::cout << "---Solution---" << std::endl;
-				auto path = create_path(&move);
+				auto path = create_path(current);
 				for (auto step : path)
 				{
 					step.display_grid();
 					std::cout << std::endl;
 				}
 				std::cout << "Solution found in " << path.size() << " steps" << std::endl;
-				return 0;
+				std::cout << "number of iterations :" << iterations << std::endl;
+				std::cout << "open states: " << toDo.size() << std::endl;
+				std::cout << "closed states: " << visited_bis.size() << std::endl;
+				return iterations;
 			}
 
-			if(visited_bis.find(key) == visited_bis.end())
+			// if (visited.find(move) == visited.end())		
+			// if(!visited_bis.contains(move->get_hash()))
+			if (visited_bis.find(move->get_hash()) == visited_bis.end())
 			{
-				State * new_move = new State(move);
-				toDo.push(new_move);
-				visited_bis.insert(std::make_pair(key, new_move));
+				toDo.push(move);
+				visited_bis.insert(std::make_pair(move->get_hash(), move));
+
+				// visited_bis.insert(move->get_hash(), move);
+				// visited.insert(move);
 				continue;
 			}
+			delete move;
 		}
+		iterations++;
 	}
 	return -1;
 }

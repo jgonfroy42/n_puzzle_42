@@ -2,11 +2,12 @@ NAME = npuzzle
 
 SRCS =	main.cpp \
 		Config.cpp \
-		State.cpp
+		State.cpp \
+		HashMap.cpp
 
 CXX = c++
 
-CXXFLAGS = -Wall -Wextra -Werror
+CXXFLAGS = -Wall -Wextra -Werror -Ofast
 
 CPPFLAGS = -MMD -I ./include/
 

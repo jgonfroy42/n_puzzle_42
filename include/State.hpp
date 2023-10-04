@@ -26,6 +26,7 @@ class State
 
 		static int getSideSize();
 		static int getTotalSize();
+		static int getTotalStates();
 		static void setSize(const int & n);
 		// void setSize(const int & n);
 		
@@ -34,15 +35,26 @@ class State
 		bool operator<(const State & other) const;
 		State & operator=(const State & other);
 		optimized_grid	get_grid() const;
+		uint64_t get_hash() const;
 		int	find_blank() const;
 		int	calculate_score();
 		int calculate_linear_colision();
 		void	display_grid() const;
-		std::vector<State>	get_possible_moves() const;
+		std::vector<State *>	get_possible_moves() const;
 	private:
 		//constructor to call when generating children
 		State(const State * parent, int index_blank, int index_swap);
-		static int n; //size of the side of the puzzle
-		static int size; //number of cells in the puzzle
+		static size_t total_states;
+		static int	n; //size of the side of the puzzle
+		static int	size; //number of cells in the puzzle
 
+		/* HASH related stuff */
+		static std::vector<std::vector<uint64_t>> hash_grid;
+
+		uint64_t	hash;
+
+
+		void			calculate_hash(int index_blank, int index_swap);
+		void			calculate_start_hash();
+		void	generate_hash_grid();
 };
