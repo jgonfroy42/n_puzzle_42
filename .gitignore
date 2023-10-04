@@ -2,3 +2,4 @@ a.out
 objs
 .vscode
 npuzzle
+callgrind*
