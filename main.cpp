@@ -3,116 +3,17 @@
 #include "Config.hpp"
 #include "hashMap.hpp"
 #include <memory>
-#define SIZE 7
+#define SIZE 4
 
 
 int State::n = 0;
 int State::size = State::getSideSize() * State::getSideSize();
 size_t State::total_states = 0;
 std::vector<std::vector<uint64_t>> State::hash_grid;
+std::unordered_map<uint64_t, int> State::transposition_table;
 std::default_random_engine rng_engine(1);
 
 using namespace std::chrono;
-
-
-int	search_algorithm(State *init_state);
-int a_star(State *init_state);
-int deepening_search(State &state, int g, int palier, State &winning_state, std::vector<State> & end_path);
-
-grid_format	get_winning_grid(int size)
-{
-	grid_format grid;
-
-	for (cell_size i = 0; i < size*size; i++)
-		grid.push_back(i + 1);
-	grid[grid.size() - 1] = 0;
-
-	return grid;
-}
-
-/*
- * pourquoi pas utiliser cette seulemement dans le constructeur vide de State ?
- * */
-
-grid_format generate_grid(int size)
-{
-	//std::shuffle(container.begin(), container.end(), std::random_device());
-	grid_format tiles;
-	grid_format grid;
-	
-	for (cell_size i = 0; (int)i < size*size; i++)
-		tiles.push_back(i);
-	
-	for (auto & it : tiles)
-		std::cerr << int(it) << std::endl;
-	
-	while (!tiles.empty())
-	{
-		int random = rand() % tiles.size();
-		grid.push_back(tiles[random]);
-		tiles.erase(tiles.begin() + random);
-	}
-	return grid;
-}
-
-grid_format generate_custom_grid()
-{
-
-	grid_format ret = {0, 8, 3, 6, 7, 5, 4, 1, 2};
-	return ret;
-}
-
-bool is_solvable(const grid_format &grid)
-{
-	int inversion = 0; 
-	int blank_index = grid.size() - 1; //seule position où l'index ne sera pas mis à jour dans la boucle
-
-	int nsize = sqrt(grid.size());
-	//testing that the grid has valid tiles
-	grid_format copy = grid;
-	std::sort(copy.begin(), copy.end());
-
-	for(int i = 0;i < (int)copy.size(); i++)
-	{
-		if (copy[i] != i)
-			return false;
-	}
-
-
-	for (size_t i = 0; i < grid.size() - 1; i++)
-	{
-		if (grid[i] == 0)
-		{
-			blank_index = i;
-			continue;
- 		}
-		for (size_t j = i + 1; j < grid.size(); j++)
-		{
-			if (grid[j] != 0 && grid[j] < grid[i])
-				inversion++;
-		}
-	}
- 
-	//if n is odd, solvable if number of inversion in even
-	if (nsize % 2 != 0)
-	{
-		if (inversion % 2 == 0)
-			return true;
-		return false;
-	}
-	
-	//if n is even and inversion odd, solvable if:
-	//- blank in even row (from bottom) and inversion odd
-	//- or, blank in odd row and inversion even
-
-	int row_from_bottom = nsize - blank_index / nsize;
-	if (row_from_bottom % 2 == 0 && inversion % 2 != 0)
-		return true;
-	if (row_from_bottom % 2 != 0 && inversion % 2 == 0)
-		return true;
-
-	return false;
-}
 
 int main(int argc, char **argv)
 {
@@ -164,160 +65,29 @@ int main(int argc, char **argv)
 	// if (search_algorithm(init_state) == -1)
 		// std::cout << "Solution not found" << std::endl;
 	
-	int ret = a_star(init_state);
-	if (ret == -1)
+	SearchResult result = search_algorithm(init_state);
+	// SearchResult result = a_star(init_state);
+	if (result.success == false)
 		std::cout << "Solution not found" << std::endl;
 
 	auto stop = high_resolution_clock::now();
 	auto duration = duration_cast<milliseconds>(stop - start);
-	std::cerr << "total number of states:" << State::getTotalStates() << std::endl;
-	std::cerr << "total number of iterations: " << ret << std::endl;
-	std::cerr << "iterations per ms: " << ret / duration.count() << "/ms" << std::endl;
+
+	for(auto & move : result.path)
+	{
+		move.display_grid();
+		move.display_dir();
+		std::cout << std::endl;
+	}
+
+	std::cout << "Steps required to solve :      " << result.path.size() << std::endl;
+	std::cout << "Total number of opened states: " << result.open_states << std::endl;
+	std::cout << "Total number of closed states: " << result.closed_states << std::endl;
+	std::cout << "total number of states:        " << result.max_states_in_memory << std::endl;
+	std::cout << "total number of iterations:    " << result.iterations << std::endl;
+	std::cout << "iterations per ms:             " << result.iterations / (duration.count() > 0 ? duration.count() : 1 ) << "/ms" << std::endl;
 
 	std::cout << std::endl << duration.count() << " ms" << std::endl;
-}
-
-std::vector<State> create_path(const State *ending_state)
-{
-	std::cout << "creating path\n";
-	std::stack<const State *> temp;
-	std::vector<State> ret;
-
-	while (ending_state != NULL)
-	{
-		temp.push(ending_state);
-		ending_state = ending_state->parent;
-	
-	}
-
-	while (!temp.empty())
-	{
-		ret.push_back(*temp.top());
-		temp.pop();
-	}
-
-	return ret;
-}
-
-// int	search_algorithm(State *init_state)
-// {
-// 	int palier = init_state->score;
-// 	State winning_state(get_winning_grid(State::getSideSize()));
-// 	std::vector<State> end_path;
-
-// //créer le chemin dans la fonction init sans avoir besoin de retour ?	
-// 	while (true)
-// 	{
-// 		auto ret = deepening_search(*init_state, 0, palier, winning_state, end_path);
-// 		if (ret == 0)
-// 		{
-// 			std::cout << "---Solution---" << std::endl;
-// 			for (auto step : end_path)
-// 			{
-// 				step.display_grid();
-// 				std::cout << std::endl;
-// 			}
-// 			std::cout << "Solution found in " << end_path.size() << " steps" << std::endl;
-// 			return 0;
-// 		}
-// 		palier = ret;
-// 		std::cout << "increasing threshold to :" << palier << std::endl;
-// 	}
-
-// 	return -1;
-// }
-
-// int deepening_search(State &state, int g, int palier, State &winning_state, std::vector<State> & end_path)
-// {
-
-// 	int f = g + state.score;
-// 	if (f > palier)
-// 		return f;
-// 	if (state == winning_state)
-// 		return 0;
-
-// 	int min = INT_MAX;
-// 	for (auto &move : state.get_possible_moves())
-// 	{
-// 		auto ret = deepening_search(move, g + 1, palier, winning_state, end_path);
-// 		if (ret == 0)
-// 		{
-// 			if (end_path.empty())
-// 				end_path = create_path(&move);
-// 			return 0;
-// 		}
-// 		if (ret < min)
-// 			min = ret;
-// 	} 
-// 	return min;
-// }
-
-int a_star(State *init_state)
-{
-	State winning_state(get_winning_grid(init_state->getSideSize()));
-	size_t iterations = 0;
-
-	// auto cmp_ptr = [](State *lhs, State *rhs) {return *lhs < *rhs;};
-	auto cmp = [](State *lhs, State *rhs) { return lhs->score > rhs->score;};
-
-	// std::set<State*, decltype(cmp_ptr)> visited(cmp_ptr);
-
-	std::unordered_map<uint64_t, State *> visited_bis;
-	// HashMap visited_bis;
-	std::string key;
-
-	std::priority_queue<State*, std::vector<State*>, decltype(cmp)> toDo(cmp);
-
-	toDo.push(init_state);
-	// key.assign(reinterpret_cast<char *>(init_state->get_grid()), init_state->getTotalSize() * sizeof(cell_size));
-	// visited_bis.insert(std::make_pair(key, init_state));
-	visited_bis.insert(std::make_pair(init_state->get_hash(), init_state));
-	// visited_bis.insert(init_state->get_hash(), init_state);
-
-	while(!toDo.empty())
-	{
-		State *current = toDo.top();
-		toDo.pop();
-		// visited.insert(current);
-		// std::cerr << key << std::endl;
-		// visited_bis.insert(std::make_pair(current->get_hash(), current));
-		// current->display_grid();
-		// std::cout << std::endl;
-
-
-		for (auto & move : current->get_possible_moves())
-		{
-			// key.assign(reinterpret_cast<char *>(move->get_grid()), move->getTotalSize() * sizeof(cell_size));
-			if (*current == winning_state)
-			{
-				std::cout << "---Solution---" << std::endl;
-				auto path = create_path(current);
-				for (auto step : path)
-				{
-					step.display_grid();
-					std::cout << std::endl;
-				}
-				std::cout << "Solution found in " << path.size() << " steps" << std::endl;
-				std::cout << "number of iterations :" << iterations << std::endl;
-				std::cout << "open states: " << toDo.size() << std::endl;
-				std::cout << "closed states: " << visited_bis.size() << std::endl;
-				return iterations;
-			}
-
-			// if (visited.find(move) == visited.end())		
-			// if(!visited_bis.contains(move->get_hash()))
-			if (visited_bis.find(move->get_hash()) == visited_bis.end())
-			{
-				toDo.push(move);
-				visited_bis.insert(std::make_pair(move->get_hash(), move));
-
-				// visited_bis.insert(move->get_hash(), move);
-				// visited.insert(move);
-				continue;
-			}
-			delete move;
-		}
-		iterations++;
-	}
-	return -1;
+	delete init_state;
+	return EXIT_SUCCESS;
 }

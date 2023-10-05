@@ -7,6 +7,14 @@
 #include <cmath>
 #include <cstring>
 
+enum direction
+{
+	UP,
+	DOWN,
+	LEFT,
+	RIGHT,
+	NONE
+};
 class State
 {
 	public:
@@ -16,6 +24,7 @@ class State
 		// const int	n = 0;
 		int		move = 0;
 		int		score = -1;
+		direction dir = NONE;
 
 		State();
 		~State();
@@ -40,16 +49,20 @@ class State
 		int	calculate_score();
 		int calculate_linear_colision();
 		void	display_grid() const;
-		std::vector<State *>	get_possible_moves() const;
+		void	display_dir() const;
+		std::vector<State>	get_possible_moves() const;
+		std::vector<State>		create_path() const;
 	private:
 		//constructor to call when generating children
-		State(const State * parent, int index_blank, int index_swap);
+		State(const State * parent, int index_blank, int index_swap, direction dir);
 		static size_t total_states;
 		static int	n; //size of the side of the puzzle
 		static int	size; //number of cells in the puzzle
 
 		/* HASH related stuff */
 		static std::vector<std::vector<uint64_t>> hash_grid;
+
+		static std::unordered_map<uint64_t, int> transposition_table;
 
 		uint64_t	hash;
 

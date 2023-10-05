@@ -3,11 +3,14 @@ NAME = npuzzle
 SRCS =	main.cpp \
 		Config.cpp \
 		State.cpp \
-		HashMap.cpp
+		HashMap.cpp \
+		grid_utils.cpp \
+		a_star.cpp \
+		ida_star.cpp
 
 CXX = c++
 
-CXXFLAGS = -Wall -Wextra -Werror -Ofast
+CXXFLAGS = -Wall -Wextra -Werror -Ofast -std=c++20
 
 CPPFLAGS = -MMD -I ./include/
 

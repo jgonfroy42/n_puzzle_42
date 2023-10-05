@@ -13,10 +13,10 @@ State::State(grid_format t_grid)
 	for(int i = 0; i < this->size; i++)
 		this->grid[i] = t_grid[i];
 
-	this->score = calculate_score();
 	if (this->hash_grid.empty())
 		this->generate_hash_grid();
 	this->calculate_start_hash();
+	this->score = calculate_score();
 }
 
 // State::State(const std::vector<int> & grid)
@@ -37,7 +37,7 @@ State::State(const State & other)
 }
 
 //private constructor called when creating a child
-State::State(const State * parent, int index_blank, int index_swap)
+State::State(const State * parent, int index_blank, int index_swap, direction dir)
 {
 	State::total_states++;
 	this->grid = new cell_size[this->size];
@@ -49,6 +49,7 @@ State::State(const State * parent, int index_blank, int index_swap)
 
 	this->parent = parent;
 	this->move = parent->move + 1;
+	this->dir = dir;
 	this->score = calculate_score();
 }
 
@@ -73,6 +74,7 @@ State &		State::operator=(State const & other)
 	this->score = other.score;
 	this->parent = other.parent;
 	this->move = other.move;
+	this->dir = other.dir;
 	this->hash = other.hash;
 
 	return *this;
@@ -143,6 +145,13 @@ int	State::calculate_score()
 {
 	int move_needed = 0;
 
+			// auto iter = this->transposition_table.find(this->hash);
+			// if (iter != this->transposition_table.end())
+			// {
+			// 	this->score = iter->second;
+			// 	return this->score;
+			// }
+
 	for (int i = 0; i < this->size; i++)
 	{
 		int tile = this->grid[i];
@@ -159,7 +168,8 @@ int	State::calculate_score()
 
 	//this->score = move_needed + move;  //get shortest path (g(x) + h(x) ?)
 	//this->score = move_needed;
-	this->score = move_needed + calculate_linear_colision();
+	this->score = move_needed + (calculate_linear_colision()) + move;
+			// this->transposition_table.insert(std::make_pair(this->hash, this->score));
 	return this->score;
 }
 //to qualify a linear collisions between two tiles ( a and b )
@@ -232,6 +242,29 @@ void	State::display_grid() const
 	}
 }
 
+void State::display_dir() const
+{
+	switch (this->dir)
+	{
+		case UP: {
+			std::cout << "UP\n";
+			break;
+		}case DOWN: {
+			std::cout << "DOWN\n";
+			break;
+		}case LEFT: {
+			std::cout << "LEFT\n";
+			break;
+
+		}case RIGHT:{
+			std::cout << "RIGHT\n";
+			break;
+		} case NONE:{
+			break;
+		}
+	}
+}
+
 // State	swap_tile(const State *parent, int index_blank, int index_swap)
 // {
 // 	grid_format grid = parent->get_grid();
@@ -241,10 +274,10 @@ void	State::display_grid() const
 // 	return State(grid, parent);
 // }
 
-std::vector<State* >	State::get_possible_moves() const
+std::vector<State>	State::get_possible_moves() const
 {
 	int		index_swap;
-	std::vector<State *>	ret;
+	std::vector<State>	ret;
 	ret.reserve(4);
 
 	int index = this->find_blank();
@@ -257,7 +290,7 @@ std::vector<State* >	State::get_possible_moves() const
 	if (y < n - 1)
 	{
 		index_swap = (y + 1) * n + x;	
-		ret.push_back(new State(this, index, index_swap));
+		ret.push_back(State(this, index, index_swap, DOWN));
 	}
 
 	/*
@@ -266,7 +299,7 @@ std::vector<State* >	State::get_possible_moves() const
 	if (y > 0)
 	{
 		index_swap = (y - 1) * n + x;	
-		ret.push_back(new State(this, index, index_swap));
+		ret.push_back(State(this, index, index_swap, UP));
 	}
 
 	/*
@@ -275,7 +308,7 @@ std::vector<State* >	State::get_possible_moves() const
 	if (x < n - 1)
 	{
 		index_swap = y * n + x + 1;	
-		ret.push_back(new State(this, index, index_swap));
+		ret.push_back(State(this, index, index_swap, RIGHT));
 	}
 
 	/*
@@ -284,10 +317,10 @@ std::vector<State* >	State::get_possible_moves() const
 	if (x > 0)
 	{
 		index_swap = y * n + x - 1;	
-		ret.push_back(new State(this, index, index_swap));
+		ret.push_back(State(this, index, index_swap, LEFT));
 	}
 
-	std::shuffle(ret.begin(), ret.end(), rng_engine);
+	// std::shuffle(ret.begin(), ret.end(), rng_engine);
 	return ret;
 }
 
@@ -323,6 +356,29 @@ void	State::generate_hash_grid()
 	for(int i = 0; i < State::size; i++)
 	{
 		for(int j = 0; j < State::size; j++)
-			State::hash_grid[i].push_back(std::rand());
+			State::hash_grid[i].push_back((std::rand() << sizeof(uint64_t) / 2) | (uint64_t)std::rand());
 	}
+}
+
+std::vector<State> State::create_path() const
+{
+	std::cout << "creating path\n";
+	std::stack<const State *> temp;
+	std::vector<State> ret;
+	const State * ptr = this;
+
+
+	while (ptr != NULL)
+	{
+		temp.push(ptr);
+		ptr = ptr->parent;
+	}
+
+	while (!temp.empty())
+	{
+		ret.push_back(*temp.top());
+		temp.pop();
+	}
+
+	return ret;
 }
