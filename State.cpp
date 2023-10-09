@@ -51,6 +51,7 @@ State::State(const State * parent, int index_blank, int index_swap, direction di
 	this->move = parent->move + 1;
 	this->dir = dir;
 	this->score = calculate_score();
+	this->pos = parent->pos;
 }
 
 // State::State(grid_format t_grid, const State *t_parent)
@@ -144,6 +145,9 @@ int	State::find_blank() const
 
 int	State::calculate_score()
 {
+	for (int pos : this->pos)
+		std::cout << pos << std::endl;
+
 	int move_needed = 0;
 
 			auto iter = this->transposition_table.find(this->hash);
@@ -161,8 +165,8 @@ int	State::calculate_score()
 			continue;
 		int x = i % n;
 		int y = i / n;
-		int x_target = (tile - 1) % n;
-		int y_target = (tile - 1) / n;
+		int x_target = this->pos[tile] % n;
+		int y_target = this->pos[tile] / n;
 
 		move_needed += abs(x - x_target) + abs(y - y_target);
 	}
@@ -391,4 +395,12 @@ std::vector<State> State::create_path() const
 	}
 
 	return ret;
+}
+
+void	State::setPosition()
+{
+	this->pos.reserve(size);
+
+	for (int i = 0; i < this->getTotalSize(); i++)
+		this->pos[this->grid[i]] = i;
 }

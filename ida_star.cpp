@@ -9,6 +9,10 @@ SearchResult	search_algorithm(State *init_state)
 	std::vector<State> end_path;
 	std::unordered_set<uint64_t> visited;
 
+	//a changer si POC fonctionne pck tres sale
+	winning_state.setPosition();
+	init_state->pos = winning_state.pos;
+
 //créer le chemin dans la fonction init sans avoir besoin de retour ?	
 	while (true)
 	{

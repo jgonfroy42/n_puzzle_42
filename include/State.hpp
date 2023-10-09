@@ -25,6 +25,7 @@ class State
 		int		move = 0;
 		int		score = -1;
 		direction dir = NONE;
+		std::vector<int>	pos;
 
 		State();
 		~State();
@@ -38,7 +39,9 @@ class State
 		static int getTotalStates();
 		static void setSize(const int & n);
 		// void setSize(const int & n);
-		
+		void setPosition();
+
+
 		bool	operator==(grid_format cmp_grid) const;
 		bool operator==(const State & other) const ;
 		bool operator<(const State & other) const;
