@@ -14,7 +14,8 @@ SearchResult	search_algorithm(State *init_state)
 	{
 		visited.clear();
 		end_path.clear();
-		auto ret = deepening_search(*init_state, palier, winning_state, end_path, visited);
+		end_path.push_back(*init_state);
+		int ret = deepening_search(palier, 0, winning_state, end_path, visited);
 		if (ret == 0)
 		{
 			search.path = end_path;
@@ -29,11 +30,12 @@ SearchResult	search_algorithm(State *init_state)
 	return search;
 }
 
-int deepening_search(State &state, int palier, State &winning_state, std::vector<State> & end_path, std::unordered_set<uint64_t> & visited)
+int deepening_search(int palier, int g, State &winning_state, std::vector<State> & end_path, std::unordered_set<uint64_t> & visited)
 {
-
-	if (state.score > palier)
-		return state.score;
+	State & state = end_path.back();
+	int f = g + state.score;
+	if ( f > palier)
+		return f ;
 	if (state == winning_state)
 		return 0;
 
@@ -43,17 +45,16 @@ int deepening_search(State &state, int palier, State &winning_state, std::vector
 	// std::cout << std::endl;
 	for (auto &move : state.get_possible_moves())
 	{
-		if (visited.contains(move.get_hash())) continue;
-		visited.insert(move.get_hash());
-		auto ret = deepening_search(move, palier, winning_state, end_path, visited);
+		// if (visited.count(move.get_hash()))
+		// 	continue;;
+		// visited.insert(move.get_hash());
+		end_path.push_back(std::move(move));
+		int ret = deepening_search(palier, g + 1, winning_state, end_path, visited);
 		if (ret == 0)
-		{
-			if (end_path.empty())
-				end_path = move.create_path();
 			return 0;
-		}
 		if (ret < min)
 			min = ret;
-	} 
+		end_path.pop_back();
+	}
 	return min;
 }

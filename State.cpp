@@ -69,7 +69,8 @@ State &		State::operator=(State const & other)
 	if (!this->grid)
 		this->grid = new cell_size[this->size];
 	
-	std::memcpy(this->grid, other.grid, this->size);
+	if (this->grid && other.grid)
+		std::memcpy(this->grid, other.grid, this->size);
 
 	this->score = other.score;
 	this->parent = other.parent;
@@ -145,12 +146,12 @@ int	State::calculate_score()
 {
 	int move_needed = 0;
 
-			// auto iter = this->transposition_table.find(this->hash);
-			// if (iter != this->transposition_table.end())
-			// {
-			// 	this->score = iter->second;
-			// 	return this->score;
-			// }
+			auto iter = this->transposition_table.find(this->hash);
+			if (iter != this->transposition_table.end())
+			{
+				this->score = iter->second;
+				return this->score;
+			}
 
 	for (int i = 0; i < this->size; i++)
 	{
@@ -168,8 +169,8 @@ int	State::calculate_score()
 
 	//this->score = move_needed + move;  //get shortest path (g(x) + h(x) ?)
 	//this->score = move_needed;
-	this->score = move_needed + (calculate_linear_colision()) + move;
-			// this->transposition_table.insert(std::make_pair(this->hash, this->score));
+	this->score = move_needed + (calculate_linear_colision());
+	this->transposition_table.insert(std::make_pair(this->hash, this->score));
 	return this->score;
 }
 //to qualify a linear collisions between two tiles ( a and b )
@@ -234,9 +235,11 @@ int State::calculate_linear_colision()
 
 void	State::display_grid() const
 {
+	if (this->grid == NULL)
+		throw std::exception();
 	for (int i = 0; i < this->size; i++)
 	{
-		std::cout << int(this->grid[i]) << " ";
+		std::cout << std::setw(3) << int(this->grid[i]);
 		if (i % n == n - 1)
 			std::cout << std::endl;
 	}
@@ -263,6 +266,13 @@ void State::display_dir() const
 			break;
 		}
 	}
+}
+
+void State::clear_grid()
+{
+	if (this->grid != NULL)
+		delete [] this->grid;
+	this->grid = NULL;
 }
 
 // State	swap_tile(const State *parent, int index_blank, int index_swap)

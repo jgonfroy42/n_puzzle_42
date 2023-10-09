@@ -14,6 +14,8 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <cmath>
+#include <exception>
+#include <iomanip>
 
 
 typedef uint_least8_t cell_size;
@@ -34,7 +36,7 @@ struct SearchResult
 extern std::default_random_engine rng_engine;
 SearchResult	a_star(State *init_state);
 SearchResult	search_algorithm(State *init_state);
-int deepening_search(State &state, int palier, State &winning_state, std::vector<State> & end_path, std::unordered_set<uint64_t> & visited);
+int deepening_search(int palier, int g, State &winning_state, std::vector<State> & end_path, std::unordered_set<uint64_t> & visited);
 grid_format	get_winning_grid(int size);
 grid_format generate_grid(int size);
 grid_format generate_custom_grid();

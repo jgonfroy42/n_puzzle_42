@@ -12,7 +12,7 @@ SearchResult a_star(State *init_state)
 	SearchResult ret;
 	State winning_state(get_winning_grid(init_state->getSideSize()));
 
-	auto cmp = [](State * lhs, State * rhs) { return lhs->score >= rhs->score;};
+	auto cmp = [](State * lhs, State * rhs) { return lhs->score + lhs->move >= rhs->score + rhs->move;};
 	std::priority_queue<State*, std::vector<State *>, decltype(cmp)> toDo(cmp);
 
 	std::unordered_map<uint64_t, State> visited;
@@ -46,6 +46,7 @@ SearchResult a_star(State *init_state)
 				continue;
 			}
 		}
+		current->clear_grid();
 		ret.iterations++;
 	}
 	ret.success = false;

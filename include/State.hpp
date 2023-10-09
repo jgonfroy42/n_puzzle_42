@@ -50,6 +50,7 @@ class State
 		int calculate_linear_colision();
 		void	display_grid() const;
 		void	display_dir() const;
+		void	clear_grid();
 		std::vector<State>	get_possible_moves() const;
 		std::vector<State>		create_path() const;
 	private:

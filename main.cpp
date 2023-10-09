@@ -3,7 +3,7 @@
 #include "Config.hpp"
 #include "hashMap.hpp"
 #include <memory>
-#define SIZE 4
+#define SIZE 5
 
 
 int State::n = 0;
