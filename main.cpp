@@ -60,7 +60,7 @@ int main(int argc, char **argv)
 		
 	init_state->display_grid();
 	std::cout << std::endl;
-
+	
 	auto start = high_resolution_clock::now();
 	// if (search_algorithm(init_state) == -1)
 		// std::cout << "Solution not found" << std::endl;
@@ -79,7 +79,7 @@ int main(int argc, char **argv)
 		move.display_dir();
 		std::cout << std::endl;
 	}
-
+	std::cout << "Success : " << result.success << std::endl;
 	std::cout << "Steps required to solve :      " << result.path.size() << std::endl;
 	std::cout << "Total number of opened states: " << result.open_states << std::endl;
 	std::cout << "Total number of closed states: " << result.closed_states << std::endl;
