@@ -86,7 +86,7 @@ bool Config::_readSize()
 		remove_comments(line);
 
 		if (line.empty()) continue;
-		if (!isOnlyDigits(line))
+		if (!isOnlyDigit_and_space(line))
 		{
 			this->error_type = INVALID_CHAR;
 			return false;
