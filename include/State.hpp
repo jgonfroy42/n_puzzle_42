@@ -15,6 +15,13 @@ enum direction
 	RIGHT,
 	NONE
 };
+
+enum eval
+{
+	manhattan,
+	conflicts,
+	hybrid,
+};
 class State
 {
 	public:
@@ -44,6 +51,7 @@ class State
 		bool operator<(const State & other) const;
 		State & operator=(const State & other);
 		optimized_grid	get_grid() const;
+		void		set_eval(eval eval_set);
 		uint64_t get_hash() const;
 		int	find_blank() const;
 		int	calculate_score();
