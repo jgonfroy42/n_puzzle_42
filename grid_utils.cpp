@@ -3,7 +3,7 @@
 grid_format	get_winning_grid(int size)
 {
 	grid_format grid;
-	grid.reserve(size * size);
+	grid.resize(size * size);
 
 	char dir = 'E';
 	int x = -1;

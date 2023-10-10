@@ -16,6 +16,7 @@ State::State(grid_format t_grid)
 	if (this->hash_grid.empty())
 		this->generate_hash_grid();
 	this->calculate_start_hash();
+	this->setTargetPosition();
 	this->score = calculate_score();
 }
 
@@ -51,7 +52,6 @@ State::State(const State * parent, int index_blank, int index_swap, direction di
 	this->move = parent->move + 1;
 	this->dir = dir;
 	this->score = calculate_score();
-	this->pos = parent->pos;
 }
 
 // State::State(grid_format t_grid, const State *t_parent)
@@ -145,9 +145,6 @@ int	State::find_blank() const
 
 int	State::calculate_score()
 {
-	for (int pos : this->pos)
-		std::cout << pos << std::endl;
-
 	int move_needed = 0;
 
 			auto iter = this->transposition_table.find(this->hash);
@@ -165,15 +162,15 @@ int	State::calculate_score()
 			continue;
 		int x = i % n;
 		int y = i / n;
-		int x_target = this->pos[tile] % n;
-		int y_target = this->pos[tile] / n;
+		int x_target = this->target_position[tile] % n;
+		int y_target = this->target_position[tile] / n;
 
 		move_needed += abs(x - x_target) + abs(y - y_target);
 	}
 
 	//this->score = move_needed + move;  //get shortest path (g(x) + h(x) ?)
-	//this->score = move_needed;
-	this->score = move_needed + (calculate_linear_colision());
+	this->score = move_needed;
+//	this->score = move_needed + (calculate_linear_colision());
 	this->transposition_table.insert(std::make_pair(this->hash, this->score));
 	return this->score;
 }
@@ -397,10 +394,12 @@ std::vector<State> State::create_path() const
 	return ret;
 }
 
-void	State::setPosition()
+void	State::setTargetPosition()
 {
-	this->pos.reserve(size);
+	grid_format target = get_winning_grid(State::getSideSize());
+
+	this->target_position.resize(size);
 
 	for (int i = 0; i < this->getTotalSize(); i++)
-		this->pos[this->grid[i]] = i;
+		this->target_position[target[i]] = i;
 }

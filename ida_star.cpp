@@ -9,9 +9,6 @@ SearchResult	search_algorithm(State *init_state)
 	std::vector<State> end_path;
 	std::unordered_set<uint64_t> visited;
 
-	//a changer si POC fonctionne pck tres sale
-	winning_state.setPosition();
-	init_state->pos = winning_state.pos;
 
 //créer le chemin dans la fonction init sans avoir besoin de retour ?	
 	while (true)
@@ -49,15 +46,16 @@ int deepening_search(int palier, int g, State &winning_state, std::vector<State>
 	// std::cout << std::endl;
 	for (auto &move : state.get_possible_moves())
 	{
-		// if (visited.count(move.get_hash()))
-		// 	continue;;
-		// visited.insert(move.get_hash());
+		if (visited.count(move.get_hash()))
+			continue;;
+		visited.insert(move.get_hash());
 		end_path.push_back(std::move(move));
 		int ret = deepening_search(palier, g + 1, winning_state, end_path, visited);
 		if (ret == 0)
 			return 0;
 		if (ret < min)
 			min = ret;
+		visited.erase(end_path.back().get_hash());
 		end_path.pop_back();
 	}
 	return min;
