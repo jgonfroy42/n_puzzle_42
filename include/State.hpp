@@ -36,6 +36,9 @@ enum eval
 *
 *	- it is possible to activate a transpoistion table to store every calculated score,
 *		usefull if you are using a searching algo that goes a lot through the same states ( IDA * i see you )
+*	
+*	- This transposition table also stores the lowest depth a wich the state has been generated
+		usefull if you need to know there is a better path for the current subtree
 */
 
 /**
@@ -100,6 +103,7 @@ class State
 		 */
 		static void		set_eval(eval eval_set);
 
+		static size_t get_transpos_size();
 		/**	OPERATORS **/
 		// void setSize(const int & n);
 		void setTargetPosition();
@@ -143,6 +147,21 @@ class State
 		 */
 		uint64_t get_hash() const;
 
+		/**
+		 * @brief Uses the inner transposition table to return the lowest depth this state has been seen
+		 * 
+		 * @return int 
+		 */
+		int	get_lowest_depth() const;
+
+		/**
+		 * @brief Uses the inner transposition table to check if current node has already been seen before
+		 * 
+		 * @return true 
+		 * @return false 
+		 */
+		bool has_been_visited() const;
+
 
 		/** STATE LOGIC **/
 
@@ -160,6 +179,7 @@ class State
 		 * @return std::vector<State> 
 		 */
 		std::vector<State>	create_path() const;
+
 
 
 		/** UTILS **/
@@ -228,9 +248,10 @@ class State
 
 		/**
 		 * @brief a transposition table containing all previously calculated scores
-		 * 
+		 *  as well as the lowest depth a node has been seen
+		 *  THE PAIR IS [SCORE, DEPTH]
 		 */
-		static std::unordered_map<uint64_t, int> transposition_table;
+		static std::unordered_map<uint64_t, std::pair<int, int>> transposition_table;
 
 		uint64_t	hash;
 
@@ -253,3 +274,12 @@ class State
 		 */
 		void	generate_hash_grid();
 };
+
+namespace std {
+	template <>
+	struct hash<State> {
+		size_t operator()(const State & state) const {
+			return (size_t(state.get_hash()));
+		}
+	};
+} 

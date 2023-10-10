@@ -124,6 +124,9 @@ uint64_t		State::get_hash() const {return this->hash;}
 int State::getSideSize() { return State::n;}
 int State::getTotalSize() {return State::size;}
 int State::getTotalStates() {return State::total_states;}
+size_t State::get_transpos_size(){return State::transposition_table.size();}
+int State::get_lowest_depth() const {return this->transposition_table[this->hash].second;}
+bool State::has_been_visited() const {return this->transposition_table[this->hash].second != this->move;}
 
 void State::setSize(const int & n)
 {
@@ -147,12 +150,15 @@ int	State::calculate_score()
 {
 	int move_needed = 0;
 
-			auto iter = this->transposition_table.find(this->hash);
-			if (iter != this->transposition_table.end())
-			{
-				this->score = iter->second;
-				return this->score;
-			}
+	auto iter = this->transposition_table.find(this->hash);
+	if (iter != this->transposition_table.end())
+	{
+		this->score = iter->second.first;
+
+		if (iter->second.second > this->move)
+			iter->second.second = this->move;
+		return this->score;
+	}
 
 	for (int i = 0; i < this->size; i++)
 	{
@@ -171,7 +177,7 @@ int	State::calculate_score()
 	//this->score = move_needed + move;  //get shortest path (g(x) + h(x) ?)
 	// this->score = move_needed;
 	this->score = move_needed + (calculate_linear_colision());
-	this->transposition_table.insert(std::make_pair(this->hash, this->score));
+	this->transposition_table.insert(std::make_pair(this->hash, std::make_pair(this->score, this->move)));
 	return this->score;
 }
 //to qualify a linear collisions between two tiles ( a and b )
