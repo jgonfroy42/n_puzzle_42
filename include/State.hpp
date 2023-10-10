@@ -211,6 +211,7 @@ class State
 		 * @return int 
 		 */
 		int	calculate_score();
+		int	calculate_score(int new_index, int old_index, direction dir);
 
 		/**
 		 * @brief a heuristics function based on the linear collision/conflict widely known npuzzle heuristics
@@ -218,6 +219,9 @@ class State
 		 * @return int 
 		 */
 		int calculate_linear_colision();
+		int calculate_linear_colision(int new_index, int old_index, direction dir);
+		int get_col_colision(const State *state, int col);
+		int get_row_colision(const State *state, int row);
 		/* HASH related stuff */
 
 		/**

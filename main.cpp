@@ -3,7 +3,7 @@
 #include "Config.hpp"
 #include "hashMap.hpp"
 #include <memory>
-#define SIZE 3
+#define SIZE 4
 
 
 int State::n = 0;
@@ -28,11 +28,11 @@ int main(int argc, char **argv)
 		grid_format start_grid = generate_grid(SIZE);
 		// grid_format start_grid = {0, 8, 3, 6, 7, 5, 4, 1, 2};
 
-		while (!is_solvable(start_grid))
+/*		while (!is_solvable(start_grid))
 		{
 			std::cout << "This grid is not solvable, generating a new one." << std::endl << std::endl;
 			start_grid = generate_grid(SIZE);	
-		}
+		}*/
 		std::cerr << "before problems" << std::endl;
 		init_state = new State(start_grid);
 	}

@@ -28,7 +28,7 @@ State::State(grid_format t_grid)
 
 // 	for(int i = 0; i < this->size; i++)
 // 		this->grid[i] = grid[i];
-	
+
 // 	this->score = calculate_score();
 // }
 
@@ -51,7 +51,11 @@ State::State(const State * parent, int index_blank, int index_swap, direction di
 	this->parent = parent;
 	this->move = parent->move + 1;
 	this->dir = dir;
-	this->score = calculate_score();
+	this->score = parent->score;
+//	std::cerr << "score = " << this->score << std::endl;
+	
+	this->score = calculate_score(index_blank, index_swap, dir);
+//	this->score = calculate_score();
 }
 
 // State::State(grid_format t_grid, const State *t_parent)
@@ -69,7 +73,7 @@ State &		State::operator=(State const & other)
 {
 	if (!this->grid)
 		this->grid = new cell_size[this->size];
-	
+
 	if (this->grid && other.grid)
 		std::memcpy(this->grid, other.grid, this->size);
 
@@ -147,12 +151,12 @@ int	State::calculate_score()
 {
 	int move_needed = 0;
 
-			auto iter = this->transposition_table.find(this->hash);
-			if (iter != this->transposition_table.end())
-			{
-				this->score = iter->second;
-				return this->score;
-			}
+	auto iter = this->transposition_table.find(this->hash);
+	if (iter != this->transposition_table.end())
+	{
+		this->score = iter->second;
+		return this->score;
+	}
 
 	for (int i = 0; i < this->size; i++)
 	{
@@ -174,6 +178,19 @@ int	State::calculate_score()
 	this->transposition_table.insert(std::make_pair(this->hash, this->score));
 	return this->score;
 }
+
+int	State::calculate_score(int new_index, int old_index, direction dir)
+{
+	int	x_target = this->target_position[grid[new_index]] % n;
+	int	y_target = this->target_position[grid[new_index]] / n;
+
+	int old_manhattan = abs(old_index % n - x_target) + abs(old_index / n - y_target);
+	int new_manhattan = abs(new_index % n - x_target) + abs(new_index / n - y_target);
+
+	int variation = - old_manhattan + new_manhattan;
+	variation += calculate_linear_colision(new_index, old_index, dir);
+	return this->score + variation;
+}
 //to qualify a linear collisions between two tiles ( a and b )
 //they need to be on the same row or column
 //they need to both have their goal position on the same row or column
@@ -181,6 +198,84 @@ int	State::calculate_score()
 
 //we check goal position of a tile by substracting one from it since tile number 1 will be at index 0
 //(tiles are stored in a contiguous array for memory optimisations)
+int State::get_col_colision(const State *state, int col)
+{
+	int linear_collisions = 0;
+
+	///col == x
+	for (int row = 0; row < this->n; row++)
+	{
+		int tile_a = state->grid[row * n + col];
+		if (tile_a == 0)
+			continue ;
+		int target_a = this->target_position[tile_a];
+		if (target_a % this->n != col)
+			continue ;
+		for(int test_row = row + 1; test_row < this->n; test_row++)
+		{
+			int tile_b = state->grid[test_row * n + col];
+			if (tile_b == 0)
+				continue;
+			int target_b = this->target_position[tile_b];
+
+			if (target_b % this->n == col &&
+			( test_row * n + col == target_a
+			|| row * n + col == target_b))
+				linear_collisions++;
+		}
+	}
+	return linear_collisions;
+}
+
+int State::get_row_colision(const State *state, int row)
+{
+	int linear_collisions = 0;
+
+	for (int col = 0; col < this->n; col++)
+	{
+		int tile_a = state->grid[row * n + col];
+		if (tile_a == 0)
+			continue ;
+		int target_a = this->target_position[tile_a];
+		if (target_a / this->n != row)
+			continue ;
+		for(int test_col = col + 1; test_col < this->n; test_col++)
+		{
+			int tile_b = state->grid[row * n + test_col];
+			if (tile_b == 0)
+				continue;
+			int target_b = this->target_position[tile_b];
+
+			if (target_b / this->n == row &&
+			( row * n + test_col == target_a
+			|| row * n + col == target_b))
+				linear_collisions++;
+		}
+	}
+	return linear_collisions;
+}
+
+
+int State::calculate_linear_colision(int new_index, int old_index, direction dir)
+{
+	int variation = 0;
+	if (dir == LEFT || dir == RIGHT)
+	{
+		variation = -this->get_col_colision(this->parent, old_index % n);
+		variation = -this->get_col_colision(this->parent, new_index % n);
+		variation = this->get_col_colision(this, old_index % n);
+		variation = this->get_col_colision(this, new_index % n);
+		return variation;
+	}
+	variation = -this->get_row_colision(this->parent, old_index / n);
+	variation = -this->get_row_colision(this->parent, new_index / n);
+	variation = this->get_row_colision(this, old_index / n);
+	variation = this->get_row_colision(this, new_index / n);
+
+	return variation;
+}
+
+
 int State::calculate_linear_colision()
 {
 	int linear_collisions = 0;
@@ -201,17 +296,17 @@ int State::calculate_linear_colision()
 					int tile_b = this->grid[test_row * n + col];
 					int target_b = this->target_position[tile_b];
 					if (tile_b == 0) continue;
-					
+
 					//if target pos of tile_b is in current col and
 					//either tile_a is target pos of tile_b or tile_b is target pos of tile_a
 					//then there is a collision
 					if (target_b % this->n == col &&
-						(	test_row * n + col == target_a - 1
-						||	row * n + col == target_b - 1))
+							(	test_row * n + col == target_a
+								||	row * n + col == target_b))
 						linear_collisions++;
 				}
 			}
-			
+
 			//else if goal position of tile_a is in its curren row
 			else if (target_a / n == row)
 			{
@@ -226,8 +321,8 @@ int State::calculate_linear_colision()
 					//either tile_a is target pos of tile_b or tile_b is target pos of tile_a
 					//then there is a collision
 					if(target_b / this->n == row &&
-						(	row * n + test_col == target_a - 1
-						||	row * n + col == target_b -1))
+							(	row * n + test_col == target_a
+								||	row * n + col == target_b))
 						linear_collisions++;
 				}
 
@@ -254,21 +349,21 @@ void State::display_dir() const
 	switch (this->dir)
 	{
 		case UP: {
-			std::cout << "UP\n";
-			break;
-		}case DOWN: {
-			std::cout << "DOWN\n";
-			break;
-		}case LEFT: {
-			std::cout << "LEFT\n";
-			break;
+				 std::cout << "UP\n";
+				 break;
+			 }case DOWN: {
+				 std::cout << "DOWN\n";
+				 break;
+			 }case LEFT: {
+				 std::cout << "LEFT\n";
+				 break;
 
-		}case RIGHT:{
-			std::cout << "RIGHT\n";
-			break;
-		} case NONE:{
-			break;
-		}
+			 }case RIGHT:{
+				 std::cout << "RIGHT\n";
+				 break;
+			 } case NONE:{
+				 break;
+			 }
 	}
 }
 
@@ -299,8 +394,8 @@ std::vector<State>	State::get_possible_moves() const
 	int y = index / this->n;
 
 	/*
- 	* swap with under tile
-	*/
+	 * swap with under tile
+	 */
 	if (y < n - 1)
 	{
 		index_swap = (y + 1) * n + x;	
@@ -308,8 +403,8 @@ std::vector<State>	State::get_possible_moves() const
 	}
 
 	/*
- 	* swap with upper title
-	*/
+	 * swap with upper title
+	 */
 	if (y > 0)
 	{
 		index_swap = (y - 1) * n + x;	
@@ -317,8 +412,8 @@ std::vector<State>	State::get_possible_moves() const
 	}
 
 	/*
- 	* swap with right title
-	*/
+	 * swap with right title
+	 */
 	if (x < n - 1)
 	{
 		index_swap = y * n + x + 1;	
@@ -326,8 +421,8 @@ std::vector<State>	State::get_possible_moves() const
 	}
 
 	/*
- 	* swap with left title
-	*/
+	 * swap with left title
+	 */
 	if (x > 0)
 	{
 		index_swap = y * n + x - 1;	
