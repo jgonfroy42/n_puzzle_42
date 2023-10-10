@@ -1,7 +1,6 @@
 #include "npuzzle.hpp"
 #include "State.hpp"
 #include "Config.hpp"
-#include "hashMap.hpp"
 #include <memory>
 #define SIZE 4
 
@@ -11,7 +10,7 @@ int State::size = State::getSideSize() * State::getSideSize();
 size_t State::total_states = 0;
 std::vector<int> State::target_position;
 std::vector<std::vector<uint64_t>> State::hash_grid;
-std::unordered_map<uint64_t, int> State::transposition_table;
+std::unordered_map<uint64_t, std::pair<int, int>> State::transposition_table;
 std::default_random_engine rng_engine(1);
 
 using namespace std::chrono;
@@ -66,7 +65,7 @@ int main(int argc, char **argv)
 		// std::cout << "Solution not found" << std::endl;
 	
 	SearchResult result = search_algorithm(init_state);
-	//SearchResult result = a_star(init_state);
+	// SearchResult result = a_star(init_state);
 	if (result.success == false)
 		std::cout << "Solution not found" << std::endl;
 
@@ -85,6 +84,8 @@ int main(int argc, char **argv)
 	std::cout << "Total number of closed states: " << result.closed_states << std::endl;
 	std::cout << "total number of states:        " << result.max_states_in_memory << std::endl;
 	std::cout << "total number of iterations:    " << result.iterations << std::endl;
+	std::cout << "max depth search:              " << result.max_depth << std::endl;
+	std::cout << "Transposition table size:      " << result.max_transpositions << std::endl;
 	std::cout << "iterations per ms:             " << result.iterations / (duration.count() > 0 ? duration.count() : 1 ) << "/ms" << std::endl;
 
 	std::cout << std::endl << duration.count() << " ms" << std::endl;

@@ -26,6 +26,8 @@ SearchResult a_star(State *init_state)
 		State *current = toDo.top();
 		toDo.pop();
 		ret.closed_states++;
+		if (current->move > ret.max_depth)
+			ret.max_depth = current->move;
 
 		if (*current == winning_state)
 		{
@@ -46,7 +48,7 @@ SearchResult a_star(State *init_state)
 				continue;
 			}
 		}
-//		current->clear_grid();
+		current->clear_grid();
 		ret.iterations++;
 	}
 	ret.success = false;

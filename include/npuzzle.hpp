@@ -30,13 +30,15 @@ struct SearchResult
 	int closed_states = 0;
 	int max_states_in_memory = 0;
 	int iterations = 0;
+	int max_depth = 0;
+	int max_transpositions = 0;
 	std::vector<State> path;
 };
 
 extern std::default_random_engine rng_engine;
 SearchResult	a_star(State *init_state);
 SearchResult	search_algorithm(State *init_state);
-int deepening_search(int palier, int g, State &winning_state, std::vector<State> & end_path, std::unordered_set<uint64_t> & visited);
+int deepening_search(int palier, int g, State &winning_state, std::vector<State> & end_path, std::unordered_map<uint64_t, int> & visited, SearchResult & search);
 grid_format	get_winning_grid(int size);
 grid_format generate_grid(int size);
 grid_format generate_custom_grid();
