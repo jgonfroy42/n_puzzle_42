@@ -3,12 +3,13 @@
 #include "Config.hpp"
 #include "hashMap.hpp"
 #include <memory>
-#define SIZE 5
+#define SIZE 3
 
 
 int State::n = 0;
 int State::size = State::getSideSize() * State::getSideSize();
 size_t State::total_states = 0;
+std::vector<int> State::target_position;
 std::vector<std::vector<uint64_t>> State::hash_grid;
 std::unordered_map<uint64_t, int> State::transposition_table;
 std::default_random_engine rng_engine(1);
@@ -42,14 +43,13 @@ int main(int argc, char **argv)
 			config.printError();
 			exit(EXIT_FAILURE);
 		}
-		if (!is_solvable(config.getGrid()))
+/*		if (!is_solvable(config.getGrid()))
 		{
 			std::cerr << "This grid is invalid or is unsolvable\n";
 			exit(EXIT_FAILURE);
-		}
+		}*/
 		init_state = new State(config.getGrid());
 	}
-
 	if(!init_state)
 	{
 		std::cerr << "Fatal error\n";
@@ -60,13 +60,13 @@ int main(int argc, char **argv)
 		
 	init_state->display_grid();
 	std::cout << std::endl;
-
+	
 	auto start = high_resolution_clock::now();
 	// if (search_algorithm(init_state) == -1)
 		// std::cout << "Solution not found" << std::endl;
 	
 	SearchResult result = search_algorithm(init_state);
-	// SearchResult result = a_star(init_state);
+	//SearchResult result = a_star(init_state);
 	if (result.success == false)
 		std::cout << "Solution not found" << std::endl;
 
@@ -79,8 +79,8 @@ int main(int argc, char **argv)
 		move.display_dir();
 		std::cout << std::endl;
 	}
-
-	std::cout << "Steps required to solve :      " << result.path.size() << std::endl;
+	std::cout << "Success : " << result.success << std::endl;
+	std::cout << "Steps required to solve :      " << result.path.size() - 1 << std::endl;
 	std::cout << "Total number of opened states: " << result.open_states << std::endl;
 	std::cout << "Total number of closed states: " << result.closed_states << std::endl;
 	std::cout << "total number of states:        " << result.max_states_in_memory << std::endl;

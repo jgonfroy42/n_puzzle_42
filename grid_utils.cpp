@@ -3,10 +3,100 @@
 grid_format	get_winning_grid(int size)
 {
 	grid_format grid;
+	grid.resize(size * size);
 
-	for (cell_size i = 0; i < size*size; i++)
-		grid.push_back(i + 1);
-	grid[grid.size() - 1] = 0;
+	char dir = 'E';
+	int x = -1;
+	int y = 0;
+	int x_limit = size - 1;
+	int y_limit = size - 1;
+
+	int nb_tiles = size * size; 
+	int num = 0;
+	while (1)
+	{
+		while (dir == 'E')
+		{
+			x++;
+			num++;
+
+			//return grid if we check the end
+			if (num == nb_tiles)
+			{
+				grid[y * size + x] = 0;
+				return grid;
+			}	
+			
+			grid[y * size + x] = num;
+
+			//change direction if we reach a border or an already fill tile
+			if (x == x_limit)
+ 				dir = 'S';
+		}
+	
+		while (dir == 'S')
+		{
+			y++;
+			num++;
+
+			//return grid if we check the end
+			if (num == nb_tiles)
+			{
+				grid[y * size + x] = 0;
+				return grid;
+			}
+
+			grid[y * size + x] = num;
+
+			//change direction if we reach a border or an already fill tile
+			if (y == y_limit)
+				dir = 'W';
+		}
+
+		while (dir == 'W')
+		{
+			x--;
+			num++;
+
+			//return grid if we check the end
+			if (num == nb_tiles)
+			{
+				grid[y * size + x] = 0;
+				return grid;
+			}	
+
+			grid[y * size + x] = num;
+
+			//change direction if we reach a border or an already fill tile
+			if (x == size - x_limit -1)
+			{
+				dir = 'N';
+				x_limit--;
+			}
+		}
+
+		while (dir == 'N')
+		{
+			y--;
+			num++;
+
+			//return grid if we check the end
+			if (num == nb_tiles)
+			{
+				grid[y * size + x] = 0;
+				return grid;
+			}	
+
+			grid[y * size + x] = num;
+
+			//change direction if we reach a border or an already fill tile
+			if (y == size - y_limit)
+			{
+				dir = 'E';
+				y_limit--;
+			}
+		}
+	}
 
 	return grid;
 }

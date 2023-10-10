@@ -101,6 +101,10 @@ class State
 		static void		set_eval(eval eval_set);
 
 		/**	OPERATORS **/
+		// void setSize(const int & n);
+		void setTargetPosition();
+
+
 		bool	operator==(grid_format cmp_grid) const;
 
 		/**
@@ -192,6 +196,7 @@ class State
 		static size_t total_states;//total number of states ever constructed
 		static int	n; //size of the side of the puzzle
 		static int	size; //number of cells in the puzzle
+		static std::vector<int>	target_position; //pos of tile of winning grid
 
 		/**
 		 * @brief returns the index of the blank tile in the grid

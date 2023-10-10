@@ -46,7 +46,7 @@ SearchResult a_star(State *init_state)
 				continue;
 			}
 		}
-		current->clear_grid();
+//		current->clear_grid();
 		ret.iterations++;
 	}
 	ret.success = false;
