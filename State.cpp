@@ -169,8 +169,8 @@ int	State::calculate_score()
 	}
 
 	//this->score = move_needed + move;  //get shortest path (g(x) + h(x) ?)
-	this->score = move_needed;
-//	this->score = move_needed + (calculate_linear_colision());
+	// this->score = move_needed;
+	this->score = move_needed + (calculate_linear_colision());
 	this->transposition_table.insert(std::make_pair(this->hash, this->score));
 	return this->score;
 }
@@ -189,42 +189,45 @@ int State::calculate_linear_colision()
 		for(int row = 0; row < this->n; row++)
 		{
 			int tile_a = this->grid[row * n + col];
+			int target_a = this->target_position[tile_a];
 			if (tile_a == 0) continue;
 
 			//if goal position of tile_a is in its current column
-			if (tile_a % this->n == col)
+			if (target_a % this->n == col)
 			{
 				//checking all others in same column ( so increasing row but not changing column yes its bizarre )
 				for(int test_row = row + 1; test_row < this->n; test_row++)
 				{
 					int tile_b = this->grid[test_row * n + col];
+					int target_b = this->target_position[tile_b];
 					if (tile_b == 0) continue;
 					
 					//if target pos of tile_b is in current col and
 					//either tile_a is target pos of tile_b or tile_b is target pos of tile_a
 					//then there is a collision
-					if (tile_b % this->n == col &&
-						(	test_row * n + col == tile_a - 1
-						||	row * n + col == tile_b - 1))
+					if (target_b % this->n == col &&
+						(	test_row * n + col == target_a - 1
+						||	row * n + col == target_b - 1))
 						linear_collisions++;
 				}
 			}
 			
 			//else if goal position of tile_a is in its curren row
-			else if (tile_a / n == row)
+			else if (target_a / n == row)
 			{
 				//checking all others in same row ( so increasing column but not changing row )
 				for(int test_col = col + 1; test_col < this->n; test_col++)
 				{
 					int tile_b = this->grid[row * n + test_col];
+					int target_b = this->target_position[tile_b];
 					if (tile_b == 0) continue;
 
 					//if target pos of tile_b is in current row and
 					//either tile_a is target pos of tile_b or tile_b is target pos of tile_a
 					//then there is a collision
-					if(tile_b / this->n == row &&
-						(	row * n + test_col == tile_a - 1
-						||	row * n + col == tile_b -1))
+					if(target_b / this->n == row &&
+						(	row * n + test_col == target_a - 1
+						||	row * n + col == target_b -1))
 						linear_collisions++;
 				}
 
