@@ -239,6 +239,7 @@ class State
 		 * @return int 
 		 */
 		int calculate_linear_colision();
+		int calculate_linear_colision(const State *state);
 		int calculate_linear_colision(int new_index, int old_index, direction dir);
 		int get_col_colision(const State *state, int col);
 		int get_row_colision(const State *state, int row);

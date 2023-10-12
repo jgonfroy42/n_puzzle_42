@@ -65,7 +65,7 @@ int main(int argc, char **argv)
 		// std::cout << "Solution not found" << std::endl;
 	
 	SearchResult result = search_algorithm(init_state);
-	// SearchResult result = a_star(init_state);
+//	SearchResult result = a_star(init_state);
 	if (result.success == false)
 		std::cout << "Solution not found" << std::endl;
 

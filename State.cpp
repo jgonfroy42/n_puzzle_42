@@ -52,10 +52,12 @@ State::State(const State * parent, int index_blank, int index_swap, direction di
 	this->move = parent->move + 1;
 	this->dir = dir;
 	this->score = parent->score;
-//	std::cerr << "score = " << this->score << std::endl;
-	
-	this->score = calculate_score(index_blank, index_swap, dir);
-//	this->score = calculate_score();
+
+//	std::cerr << "score before = " << this->score << std::endl;
+//	this->display_grid();
+//	this->score = calculate_score(index_blank, index_swap, dir);
+	this->score = calculate_score();
+//	std::cerr << "score after = " << this->score << std::endl << std::endl;
 }
 
 // State::State(grid_format t_grid, const State *t_parent)
@@ -163,6 +165,8 @@ int	State::calculate_score()
 			iter->second.second = this->move;
 		return this->score;
 	}
+//	else
+//		this->transposition_table.insert(std::make_pair(this->hash, std::make_pair(this->score, this->move)));
 
 	for (int i = 0; i < this->size; i++)
 	{
@@ -187,6 +191,20 @@ int	State::calculate_score()
 
 int	State::calculate_score(int new_index, int old_index, direction dir)
 {
+	(void)dir;
+	auto iter = this->transposition_table.find(this->hash);
+	if (iter != this->transposition_table.end())
+	{
+		this->score = iter->second.first;
+
+		if (iter->second.second > this->move)
+			iter->second.second = this->move;
+		return this->score;
+	}
+//	else
+//	this->transposition_table.insert(std::make_pair(this->hash, std::make_pair(this->score, this->move)));
+		
+
 	int	x_target = this->target_position[grid[new_index]] % n;
 	int	y_target = this->target_position[grid[new_index]] / n;
 
@@ -194,8 +212,14 @@ int	State::calculate_score(int new_index, int old_index, direction dir)
 	int new_manhattan = abs(new_index % n - x_target) + abs(new_index / n - y_target);
 
 	int variation = - old_manhattan + new_manhattan;
-	variation += calculate_linear_colision(new_index, old_index, dir);
-	return this->score + variation;
+//	std::cerr << "manhattan variation = " << variation << std::endl;
+//	variation += calculate_linear_colision(new_index, old_index, dir);
+	variation -= calculate_linear_colision(this->parent);
+	variation += calculate_linear_colision(this);
+//	std::cerr << "total variation = " << variation << std::endl;
+	this->score += variation;
+	this->transposition_table.insert(std::make_pair(this->hash, std::make_pair(this->score, this->move)));
+	return this->score;
 }
 //to qualify a linear collisions between two tiles ( a and b )
 //they need to be on the same row or column
@@ -264,22 +288,104 @@ int State::get_row_colision(const State *state, int row)
 
 int State::calculate_linear_colision(int new_index, int old_index, direction dir)
 {
+	(void)dir;
+	(void)new_index;
+	(void)old_index;
 	int variation = 0;
-	if (dir == LEFT || dir == RIGHT)
-	{
-		variation = -this->get_col_colision(this->parent, old_index % n);
-		variation = -this->get_col_colision(this->parent, new_index % n);
-		variation = this->get_col_colision(this, old_index % n);
-		variation = this->get_col_colision(this, new_index % n);
-		return variation;
-	}
-	variation = -this->get_row_colision(this->parent, old_index / n);
-	variation = -this->get_row_colision(this->parent, new_index / n);
-	variation = this->get_row_colision(this, old_index / n);
-	variation = this->get_row_colision(this, new_index / n);
 
+/*	if (dir == LEFT || dir == RIGHT)
+	{
+		variation -= this->get_col_colision(this->parent, old_index % n);
+		variation -= this->get_col_colision(this->parent, new_index % n);
+		variation += this->get_col_colision(this, old_index % n);
+		variation += this->get_col_colision(this, new_index % n);
+	}
+	else
+	{
+		variation -= this->get_row_colision(this->parent, old_index / n);
+		variation -= this->get_row_colision(this->parent, new_index / n);
+		variation += this->get_row_colision(this, old_index / n);
+		variation += this->get_row_colision(this, new_index / n);
+	}
+*/
+
+	variation -= this->get_col_colision(this->parent, 0);
+	variation -= this->get_col_colision(this->parent, 1);
+	variation -= this->get_col_colision(this->parent, 2);
+	variation -= this->get_col_colision(this->parent, 3);
+	variation += this->get_col_colision(this, 0);
+	variation += this->get_col_colision(this, 1);
+	variation += this->get_col_colision(this, 2);
+	variation += this->get_col_colision(this, 3);
+
+	variation -= this->get_row_colision(this->parent, 0);
+	variation -= this->get_row_colision(this->parent, 1);
+	variation -= this->get_row_colision(this->parent, 2);
+	variation -= this->get_row_colision(this->parent, 3);
+	variation += this->get_row_colision(this, 0);
+	variation += this->get_row_colision(this, 1);
+	variation += this->get_row_colision(this, 2);
+	variation += this->get_row_colision(this, 3);
+	
 	return variation;
 }
+
+int State::calculate_linear_colision(const State *state)
+{
+	int linear_collisions = 0;
+	for(int col = 0; col < this->n; col++)
+	{
+		for(int row = 0; row < this->n; row++)
+		{
+			int tile_a = state->grid[row * n + col];
+			int target_a = this->target_position[tile_a];
+			if (tile_a == 0) continue;
+
+			//if goal position of tile_a is in its current column
+			if (target_a % this->n == col)
+			{
+				//checking all others in same column ( so increasing row but not changing column yes its bizarre )
+				for(int test_row = row + 1; test_row < this->n; test_row++)
+				{
+					int tile_b = state->grid[test_row * n + col];
+					int target_b = this->target_position[tile_b];
+					if (tile_b == 0) continue;
+
+					//if target pos of tile_b is in current col and
+					//either tile_a is target pos of tile_b or tile_b is target pos of tile_a
+					//then there is a collision
+					if (target_b % this->n == col &&
+							(	test_row * n + col == target_a
+								||	row * n + col == target_b))
+						linear_collisions++;
+				}
+			}
+
+			//else if goal position of tile_a is in its curren row
+			else if (target_a / n == row)
+			{
+				//checking all others in same row ( so increasing column but not changing row )
+				for(int test_col = col + 1; test_col < this->n; test_col++)
+				{
+					int tile_b = state->grid[row * n + test_col];
+					int target_b = this->target_position[tile_b];
+					if (tile_b == 0) continue;
+
+					//if target pos of tile_b is in current row and
+					//either tile_a is target pos of tile_b or tile_b is target pos of tile_a
+					//then there is a collision
+					if(target_b / this->n == row &&
+							(	row * n + test_col == target_a
+								||	row * n + col == target_b))
+						linear_collisions++;
+				}
+
+			}
+		}
+	}
+	return linear_collisions;
+}
+
 
 
 int State::calculate_linear_colision()

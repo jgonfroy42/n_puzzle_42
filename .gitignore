@@ -4,3 +4,6 @@ objs
 npuzzle
 callgrind*
 out*
+*txt
+test*
+ctags
