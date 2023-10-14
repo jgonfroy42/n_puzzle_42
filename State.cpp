@@ -55,8 +55,8 @@ State::State(const State * parent, int index_blank, int index_swap, direction di
 
 //	std::cerr << "score before = " << this->score << std::endl;
 //	this->display_grid();
-//	this->score = calculate_score(index_blank, index_swap, dir);
-	this->score = calculate_score();
+	this->score = calculate_score(index_blank, index_swap, dir);
+//	this->score = calculate_score();
 //	std::cerr << "score after = " << this->score << std::endl << std::endl;
 }
 
@@ -154,8 +154,6 @@ int	State::find_blank() const
 
 int	State::calculate_score()
 {
-	int move_needed = 0;
-
 	auto iter = this->transposition_table.find(this->hash);
 	if (iter != this->transposition_table.end())
 	{
@@ -168,11 +166,13 @@ int	State::calculate_score()
 //	else
 //		this->transposition_table.insert(std::make_pair(this->hash, std::make_pair(this->score, this->move)));
 
+	int move_needed = 0;
+
 	for (int i = 0; i < this->size; i++)
 	{
 		int tile = this->grid[i];
 
-		if (tile == 0 or tile == i + 1)
+		if (tile == 0)
 			continue;
 		int x = i % n;
 		int y = i / n;
@@ -182,7 +182,6 @@ int	State::calculate_score()
 		move_needed += abs(x - x_target) + abs(y - y_target);
 	}
 
-	//this->score = move_needed + move;  //get shortest path (g(x) + h(x) ?)
 	// this->score = move_needed;
 	this->score = move_needed + (calculate_linear_colision());
 	this->transposition_table.insert(std::make_pair(this->hash, std::make_pair(this->score, this->move)));
@@ -191,18 +190,17 @@ int	State::calculate_score()
 
 int	State::calculate_score(int new_index, int old_index, direction dir)
 {
-	(void)dir;
 	auto iter = this->transposition_table.find(this->hash);
 	if (iter != this->transposition_table.end())
 	{
-		this->score = iter->second.first;
+//		this->score = iter->second.first;
 
 		if (iter->second.second > this->move)
 			iter->second.second = this->move;
-		return this->score;
+//		return this->score;
 	}
-//	else
-//	this->transposition_table.insert(std::make_pair(this->hash, std::make_pair(this->score, this->move)));
+	else
+	this->transposition_table.insert(std::make_pair(this->hash, std::make_pair(this->score, this->move)));
 		
 
 	int	x_target = this->target_position[grid[new_index]] % n;
@@ -212,13 +210,11 @@ int	State::calculate_score(int new_index, int old_index, direction dir)
 	int new_manhattan = abs(new_index % n - x_target) + abs(new_index / n - y_target);
 
 	int variation = - old_manhattan + new_manhattan;
-//	std::cerr << "manhattan variation = " << variation << std::endl;
-//	variation += calculate_linear_colision(new_index, old_index, dir);
-	variation -= calculate_linear_colision(this->parent);
-	variation += calculate_linear_colision(this);
-//	std::cerr << "total variation = " << variation << std::endl;
+	variation += calculate_linear_colision(new_index, old_index, dir);
+//	variation -= calculate_linear_colision(this->parent);
+//	variation += calculate_linear_colision(this);
 	this->score += variation;
-	this->transposition_table.insert(std::make_pair(this->hash, std::make_pair(this->score, this->move)));
+//	this->transposition_table.insert(std::make_pair(this->hash, std::make_pair(this->score, this->move)));
 	return this->score;
 }
 //to qualify a linear collisions between two tiles ( a and b )
@@ -232,7 +228,6 @@ int State::get_col_colision(const State *state, int col)
 {
 	int linear_collisions = 0;
 
-	///col == x
 	for (int row = 0; row < this->n; row++)
 	{
 		int tile_a = state->grid[row * n + col];
@@ -292,23 +287,24 @@ int State::calculate_linear_colision(int new_index, int old_index, direction dir
 	(void)new_index;
 	(void)old_index;
 	int variation = 0;
-
-/*	if (dir == LEFT || dir == RIGHT)
+	int test = 0;
+/*
+	if (dir == LEFT || dir == RIGHT)
 	{
-		variation -= this->get_col_colision(this->parent, old_index % n);
-		variation -= this->get_col_colision(this->parent, new_index % n);
-		variation += this->get_col_colision(this, old_index % n);
-		variation += this->get_col_colision(this, new_index % n);
+		test -= this->get_col_colision(this->parent, old_index % n);
+		test -= this->get_col_colision(this->parent, new_index % n);
+		test += this->get_col_colision(this, old_index % n);
+		test += this->get_col_colision(this, new_index % n);
 	}
 	else
 	{
-		variation -= this->get_row_colision(this->parent, old_index / n);
-		variation -= this->get_row_colision(this->parent, new_index / n);
-		variation += this->get_row_colision(this, old_index / n);
-		variation += this->get_row_colision(this, new_index / n);
+		test -= this->get_row_colision(this->parent, old_index / n);
+		test -= this->get_row_colision(this->parent, new_index / n);
+		test += this->get_row_colision(this, old_index / n);
+		test += this->get_row_colision(this, new_index / n);
 	}
 */
-
+	(void)test;
 	variation -= this->get_col_colision(this->parent, 0);
 	variation -= this->get_col_colision(this->parent, 1);
 	variation -= this->get_col_colision(this->parent, 2);
@@ -326,7 +322,16 @@ int State::calculate_linear_colision(int new_index, int old_index, direction dir
 	variation += this->get_row_colision(this, 1);
 	variation += this->get_row_colision(this, 2);
 	variation += this->get_row_colision(this, 3);
-	
+
+/*	if (test != variation)
+	{
+		std::cerr << "Test = " << test << " Variation = " << variation << std::endl;
+		display_grid();
+		std::cerr << std::endl;
+		this->parent->display_grid();
+		std::cerr << "---" << std::endl << std::endl;
+	}
+*/
 	return variation;
 }
 

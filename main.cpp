@@ -17,7 +17,7 @@ using namespace std::chrono;
 
 int main(int argc, char **argv)
 {
-	srand(time(0));
+	srand(1);
 
 	State * init_state;
 	Config config;
