@@ -53,11 +53,8 @@ State::State(const State * parent, int index_blank, int index_swap, direction di
 	this->dir = dir;
 	this->score = parent->score;
 
-//	std::cerr << "score before = " << this->score << std::endl;
-//	this->display_grid();
 	this->score = calculate_score(index_blank, index_swap, dir);
 //	this->score = calculate_score();
-//	std::cerr << "score after = " << this->score << std::endl << std::endl;
 }
 
 // State::State(grid_format t_grid, const State *t_parent)
@@ -211,8 +208,6 @@ int	State::calculate_score(int new_index, int old_index, direction dir)
 
 	int variation = - old_manhattan + new_manhattan;
 	variation += calculate_linear_colision(new_index, old_index, dir);
-//	variation -= calculate_linear_colision(this->parent);
-//	variation += calculate_linear_colision(this);
 	this->score += variation;
 //	this->transposition_table.insert(std::make_pair(this->hash, std::make_pair(this->score, this->move)));
 	return this->score;
@@ -288,23 +283,30 @@ int State::calculate_linear_colision(int new_index, int old_index, direction dir
 	(void)old_index;
 	int variation = 0;
 	int test = 0;
-/*
+
 	if (dir == LEFT || dir == RIGHT)
 	{
 		test -= this->get_col_colision(this->parent, old_index % n);
 		test -= this->get_col_colision(this->parent, new_index % n);
+		test -= this->get_row_colision(this->parent, new_index / n);
+		
 		test += this->get_col_colision(this, old_index % n);
 		test += this->get_col_colision(this, new_index % n);
+		test += this->get_row_colision(this, new_index / n);
+		
 	}
 	else
 	{
 		test -= this->get_row_colision(this->parent, old_index / n);
 		test -= this->get_row_colision(this->parent, new_index / n);
+		test -= this->get_col_colision(this->parent, new_index % n);
+
 		test += this->get_row_colision(this, old_index / n);
 		test += this->get_row_colision(this, new_index / n);
+		test += this->get_col_colision(this->parent, new_index % n);
 	}
-*/
-	(void)test;
+/*
+//	(void)test;
 	variation -= this->get_col_colision(this->parent, 0);
 	variation -= this->get_col_colision(this->parent, 1);
 	variation -= this->get_col_colision(this->parent, 2);
@@ -313,6 +315,7 @@ int State::calculate_linear_colision(int new_index, int old_index, direction dir
 	variation += this->get_col_colision(this, 1);
 	variation += this->get_col_colision(this, 2);
 	variation += this->get_col_colision(this, 3);
+
 
 	variation -= this->get_row_colision(this->parent, 0);
 	variation -= this->get_row_colision(this->parent, 1);
@@ -323,9 +326,11 @@ int State::calculate_linear_colision(int new_index, int old_index, direction dir
 	variation += this->get_row_colision(this, 2);
 	variation += this->get_row_colision(this, 3);
 
-/*	if (test != variation)
+	if (test != variation)
 	{
 		std::cerr << "Test = " << test << " Variation = " << variation << std::endl;
+		std::cerr << "collision parent 2 = " << this->get_row_colision(this->parent, 2) << std::endl;
+		std::cerr << "collision 2 = " << this->get_row_colision(this, 2) << std::endl;
 		display_grid();
 		std::cerr << std::endl;
 		this->parent->display_grid();
