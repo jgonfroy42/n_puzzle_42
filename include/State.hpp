@@ -233,6 +233,8 @@ class State
 		int	calculate_score();
 		int	calculate_score(int new_index, int old_index, direction dir);
 
+		int	calculate_misplaced_tiles();	
+
 		/**
 		 * @brief a heuristics function based on the linear collision/conflict widely known npuzzle heuristics
 		 * 
