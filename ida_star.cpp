@@ -7,7 +7,7 @@ SearchResult	search_algorithm(State *init_state)
 	SearchResult search;
 	State winning_state(get_winning_grid(State::getSideSize()));
 	std::vector<State> end_path;
-	std::unordered_map<std::bitset<128>, int> visited; //hash and depth
+	// std::unordered_map<std::bitset<128>, int> visited; //hash and depth
 
 
 //créer le chemin dans la fonction init sans avoir besoin de retour ?	
@@ -16,7 +16,7 @@ SearchResult	search_algorithm(State *init_state)
 		// visited.clear();
 		end_path.clear();
 		end_path.push_back(*init_state);
-		int ret = deepening_search(palier, 0, winning_state, end_path, visited, search);
+		int ret = deepening_search(palier, 0, winning_state, end_path, search);
 		if (ret == INT_MAX)
 			break;
 		if (ret == 0)
@@ -34,13 +34,17 @@ SearchResult	search_algorithm(State *init_state)
 	return search;
 }
 
-int deepening_search(int palier, int g, State &winning_state, std::vector<State> & end_path, std::unordered_map<std::bitset<128>, int> & visited, SearchResult & search)
+int deepening_search(int palier, int g, State &winning_state, std::vector<State> & end_path, SearchResult & search)
 {
 	State & state = end_path.back();
 
 	search.iterations++;
 	search.open_states++;
-	int f = g + state.score;
+	int f; 
+	if (State::getSearchParams() == Search_params::UNIFORM_COST)
+		f = g + state.score;
+	else
+		f = state.score * 100 + g;
 	if (g > search.max_depth)
 	{
 		search.max_depth = g;
@@ -64,7 +68,7 @@ int deepening_search(int palier, int g, State &winning_state, std::vector<State>
 		// 	continue;
 		if (move.has_been_visited()) continue;
 		end_path.push_back(std::move(move));
-		int ret = deepening_search(palier, g + 1, winning_state, end_path, visited, search);
+		int ret = deepening_search(palier, g + 1, winning_state, end_path, search);
 		if (ret == 0)
 			return 0;
 		if (ret < min)

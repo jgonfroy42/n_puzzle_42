@@ -17,7 +17,17 @@ State::State(grid_format t_grid)
 		this->generate_hash_grid();
 	this->calculate_start_hash();
 	this->setTargetPosition();
-	this->score = calculate_score();
+	switch(this->_eval)
+	{
+		case eval::MISSPLACED_TILES :{
+			this->score = calculate_missplaced_tiles();
+			break;
+		}
+		default :{
+			this->score = calculate_score();
+			break;
+		}
+	}
 }
 
 // State::State(const std::vector<int> & grid)
@@ -53,7 +63,21 @@ State::State(const State * parent, int index_blank, int index_swap, direction di
 	this->dir = dir;
 	this->score = parent->score;
 
-	this->score = calculate_score(index_blank, index_swap, dir);
+	switch(this->_eval)
+	{
+		case eval::MANHATTAN :{
+			this->score = calculate_score();
+			break;
+		}
+		case eval::HYBRID :{
+			this->score = calculate_score(index_blank, index_swap, dir);
+			break;
+		}
+		case eval::MISSPLACED_TILES :{
+			this->score = calculate_missplaced_tiles();
+			break;
+		}
+	}
 //	this->score = calculate_score();
 }
 
@@ -121,7 +145,7 @@ bool		State::operator==(grid_format cmp_grid) const
 
 optimized_grid	State::get_grid() const { return this->grid;}
 __uint128_t		State::get_hash() const {
-	if (this->getSideSize() > 4)
+	if (this->getSideSize() <= 4)
 		return (__uint128_t)this->grid;
 	return this->hash;
 }
@@ -131,15 +155,28 @@ __uint128_t		State::get_hash() const {
 int State::getSideSize() { return State::n;}
 int State::getTotalSize() {return State::size;}
 int State::getTotalStates() {return State::total_states;}
+eval State::getEval() {return State::_eval;}
+Search_params State::getSearchParams() {return State::_search_params;}
 size_t State::get_transpos_size(){return State::transposition_table.size();}
 int State::get_lowest_depth() const {return this->transposition_table[this->get_hash()].second;}
-bool State::has_been_visited() const {return this->transposition_table[this->get_hash()].second != this->move;}
+bool State::has_been_visited() const {
+	if (this->transposition_table.count(this->get_hash()) == 0)
+		std::cerr << "grid not found\n";
+	std::cerr << std::boolalpha << (this->transposition_table[this->get_hash()].second != this->move) << std::endl;
+	return this->transposition_table[this->get_hash()].second != this->move;
+	}
 // bool State::has_been_visited() const {return false;}
 
 void State::setSize(const int & n)
 {
 	State::n = n;
 	State::size = n * n;
+}
+
+void State::set_config(Config & config)
+{
+	State::_search_params = config.getSearchParams();
+	State::_eval = config.getEval();
 }
 
 /*--------methode-----------*/
@@ -220,7 +257,16 @@ int	State::calculate_score(int new_index, int old_index, direction dir)
 
 
 int State::calculate_missplaced_tiles()
-{	
+{
+	auto iter = this->transposition_table.find(this->get_hash());
+	if (iter != this->transposition_table.end())
+	{
+		this->score = iter->second.first;
+
+		if (iter->second.second > this->move)
+			iter->second.second = this->move;
+		return this->score;
+	}
 	int misplaced = 0;
 
 	for (int i = 0; i < this->size; i++)
@@ -232,6 +278,8 @@ int State::calculate_missplaced_tiles()
 		if (tile != this->target_position[tile])
 			misplaced++;
 	}
+	this->score = misplaced;
+	this->transposition_table.insert(std::make_pair(this->get_hash(), std::make_pair(this->score, this->move)));
 	return misplaced;
 }
 

@@ -16,6 +16,42 @@ Config::Config(const std::string & filename)
 	this->loadNewFile(filename);
 }
 
+bool Config::setSearchParams(std::string & search_name)
+{
+	if (search_name == "UNIFORM") {
+		this->_search_params = Search_params::UNIFORM_COST;
+	} else if (search_name == "GREEDY") {
+		this->_search_params = Search_params::GREEDY;
+	} else
+		return false;
+	return true;
+}
+
+bool Config::setHeuristic(std::string & heuristic_name)
+{
+	if (heuristic_name == "MH") {
+		this->_e_eval = eval::MANHATTAN;
+	} else if (heuristic_name == "MH+LC") {
+		this->_e_eval = eval::HYBRID;
+	} else if (heuristic_name == "MP") {
+		this->_e_eval = eval::MISSPLACED_TILES;
+	} else
+		return false;
+	return true;
+}
+
+bool Config::setAlgo(std::string & algo_name)
+{
+	if (algo_name == "IDA_STAR")
+	{
+		this->_algo = IDA_STAR;
+	} else if (algo_name == "A_STAR") {
+		this->_algo = A_STAR;
+	} else
+		return false;
+	return true;
+}
+
 bool Config::loadNewFile(const std::string & filename)
 {
 	this->clear();
