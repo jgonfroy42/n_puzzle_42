@@ -16,6 +16,7 @@
 #include <cmath>
 #include <exception>
 #include <iomanip>
+#include <bitset>
 
 
 typedef uint_least8_t cell_size;
@@ -35,13 +36,27 @@ struct SearchResult
 	std::vector<State> path;
 };
 
+enum e_algo
+{
+	DEFAULT_ALGO,
+	A_STAR,
+	IDA_STAR,
+};
+
+
 extern std::default_random_engine rng_engine;
 SearchResult	a_star(State *init_state);
 SearchResult	search_algorithm(State *init_state);
-int deepening_search(int palier, int g, State &winning_state, std::vector<State> & end_path, std::unordered_map<uint64_t, int> & visited, SearchResult & search);
+int deepening_search(int palier, int g, State &winning_state, std::vector<State> & end_path, std::unordered_map<std::bitset<128>, int> & visited, SearchResult & search);
 grid_format	get_winning_grid(int size);
 grid_format generate_grid(int size);
 grid_format generate_custom_grid();
 bool is_solvable(const grid_format &grid);
+
+uint64_t generate_random_uint64(void);
+bool isOnlyDigit_and_space(std::string & line);
+bool isOnlyDigits(std::string & line);
+void remove_comments(std::string & line);
+
 
 #define MAX_SIZE 15

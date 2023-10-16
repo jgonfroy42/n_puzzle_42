@@ -6,7 +6,8 @@ SRCS =	main.cpp \
 		HashMap.cpp \
 		grid_utils.cpp \
 		a_star.cpp \
-		ida_star.cpp
+		ida_star.cpp \
+		utils.cpp
 
 CXX = c++
 

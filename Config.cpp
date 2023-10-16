@@ -16,31 +16,6 @@ Config::Config(const std::string & filename)
 	this->loadNewFile(filename);
 }
 
-static void remove_comments(std::string & line)
-{
-	//remove comments
-	size_t pos = line.find('#');
-	if (pos != line.npos)
-		line.erase(pos);
-}
-
-static bool isOnlyDigits(std::string & line)
-{
-	auto iter = std::find_if_not(line.begin(), line.end(), ::isdigit);
-
-	return iter == line.end();
-}
-
-static bool isOnlyDigit_and_space(std::string & line)
-{
-	auto iter = std::find_if_not(line.begin(), line.end(), [](const int & c)
-	{
-		return std::isdigit(c) || std::isspace(c);
-	});
-
-	return iter == line.end();
-}
-
 bool Config::loadNewFile(const std::string & filename)
 {
 	this->clear();

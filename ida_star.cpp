@@ -7,7 +7,7 @@ SearchResult	search_algorithm(State *init_state)
 	SearchResult search;
 	State winning_state(get_winning_grid(State::getSideSize()));
 	std::vector<State> end_path;
-	std::unordered_map<uint64_t, int> visited; //hash and depth
+	std::unordered_map<std::bitset<128>, int> visited; //hash and depth
 
 
 //créer le chemin dans la fonction init sans avoir besoin de retour ?	
@@ -34,7 +34,7 @@ SearchResult	search_algorithm(State *init_state)
 	return search;
 }
 
-int deepening_search(int palier, int g, State &winning_state, std::vector<State> & end_path, std::unordered_map<uint64_t, int> & visited, SearchResult & search)
+int deepening_search(int palier, int g, State &winning_state, std::vector<State> & end_path, std::unordered_map<std::bitset<128>, int> & visited, SearchResult & search)
 {
 	State & state = end_path.back();
 

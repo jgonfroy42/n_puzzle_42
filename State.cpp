@@ -120,7 +120,11 @@ bool		State::operator==(grid_format cmp_grid) const
 /*--------getter & setter-------*/
 
 optimized_grid	State::get_grid() const { return this->grid;}
-uint64_t		State::get_hash() const {return this->hash;}
+__uint128_t		State::get_hash() const {
+	if (this->getSideSize() > 4)
+		return (__uint128_t)this->grid;
+	return this->hash;
+}
 
 // void State::setSize(const int & n) { State::n = n;}
 
@@ -128,8 +132,9 @@ int State::getSideSize() { return State::n;}
 int State::getTotalSize() {return State::size;}
 int State::getTotalStates() {return State::total_states;}
 size_t State::get_transpos_size(){return State::transposition_table.size();}
-int State::get_lowest_depth() const {return this->transposition_table[this->hash].second;}
-bool State::has_been_visited() const {return this->transposition_table[this->hash].second != this->move;}
+int State::get_lowest_depth() const {return this->transposition_table[this->get_hash()].second;}
+bool State::has_been_visited() const {return this->transposition_table[this->get_hash()].second != this->move;}
+// bool State::has_been_visited() const {return false;}
 
 void State::setSize(const int & n)
 {
@@ -151,17 +156,17 @@ int	State::find_blank() const
 
 int	State::calculate_score()
 {
-	auto iter = this->transposition_table.find(this->hash);
+	auto iter = this->transposition_table.find(this->get_hash());
 	if (iter != this->transposition_table.end())
 	{
-		this->score = iter->second.first;
+		// this->score = iter->second.first;
 
 		if (iter->second.second > this->move)
 			iter->second.second = this->move;
-		return this->score;
+		// return this->score;
 	}
 //	else
-//		this->transposition_table.insert(std::make_pair(this->hash, std::make_pair(this->score, this->move)));
+	// this->transposition_table.insert(std::make_pair(this->get_hash(), std::make_pair(this->score, this->move)));
 
 	int move_needed = 0;
 
@@ -181,23 +186,23 @@ int	State::calculate_score()
 
 	// this->score = move_needed;
 	this->score = move_needed + (calculate_linear_colision());
-	this->transposition_table.insert(std::make_pair(this->hash, std::make_pair(this->score, this->move)));
+	this->transposition_table.insert(std::make_pair(this->get_hash(), std::make_pair(this->score, this->move)));
 	return this->score;
 }
 
 int	State::calculate_score(int new_index, int old_index, direction dir)
 {
-	auto iter = this->transposition_table.find(this->hash);
+	auto iter = this->transposition_table.find(this->get_hash());
 	if (iter != this->transposition_table.end())
 	{
-//		this->score = iter->second.first;
+		this->score = iter->second.first;
 
 		if (iter->second.second > this->move)
 			iter->second.second = this->move;
-//		return this->score;
+		return this->score;
 	}
-	else
-	this->transposition_table.insert(std::make_pair(this->hash, std::make_pair(this->score, this->move)));
+//	else
+	// this->transposition_table.insert(std::make_pair(this->get_hash(), std::make_pair(this->score, this->move)));
 		
 
 	int	x_target = this->target_position[grid[new_index]] % n;
@@ -209,7 +214,7 @@ int	State::calculate_score(int new_index, int old_index, direction dir)
 	int variation = - old_manhattan + new_manhattan;
 	variation += calculate_linear_colision(new_index, old_index, dir);
 	this->score += variation;
-//	this->transposition_table.insert(std::make_pair(this->hash, std::make_pair(this->score, this->move)));
+	this->transposition_table.insert(std::make_pair(this->get_hash(), std::make_pair(this->score, this->move)));
 	return this->score;
 }
 //to qualify a linear collisions between two tiles ( a and b )
@@ -557,7 +562,7 @@ std::vector<State>	State::get_possible_moves() const
 
 void	State::calculate_start_hash()
 {
-	this->hash = (std::rand() << sizeof(this->hash) / 2) |  std::rand();
+	this->hash = (generate_random_uint64());
 
 	for(int i = 0; i < this->size; i++)
 		this->hash ^= this->hash_grid[this->grid[i]][i];
@@ -587,7 +592,7 @@ void	State::generate_hash_grid()
 	for(int i = 0; i < State::size; i++)
 	{
 		for(int j = 0; j < State::size; j++)
-			State::hash_grid[i].push_back((std::rand() << sizeof(uint64_t) / 2) | (uint64_t)std::rand());
+			State::hash_grid[i].push_back(generate_random_uint64());
 	}
 }
 

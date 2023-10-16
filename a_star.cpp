@@ -12,18 +12,19 @@ SearchResult a_star(State *init_state)
 	SearchResult ret;
 	State winning_state(get_winning_grid(init_state->getSideSize()));
 
-	auto cmp = [](State * lhs, State * rhs) { return lhs->score + lhs->move >= rhs->score + rhs->move;};
-	std::priority_queue<State*, std::vector<State *>, decltype(cmp)> toDo(cmp);
+	auto cmp = [](const State * lhs, const State * rhs) { return lhs->score + lhs->move >= rhs->score + rhs->move;};
+	std::priority_queue<const State*, std::vector<const State *>, decltype(cmp)> toDo(cmp);
 
-	std::unordered_map<uint64_t, State> visited;
+	std::unordered_set<State> visited;
+	visited.reserve(1000000);
 
 	toDo.push(init_state);
 	ret.open_states++;
-	visited.insert(std::make_pair(init_state->get_hash(), *init_state));
+	visited.insert(*init_state);
 
 	while(!toDo.empty())
 	{
-		State *current = toDo.top();
+		const State *current = toDo.top();
 		toDo.pop();
 		ret.closed_states++;
 		if (current->move > ret.max_depth)
@@ -34,21 +35,22 @@ SearchResult a_star(State *init_state)
 			ret.path = current->create_path();
 			ret.success = true;
 			ret.max_states_in_memory = visited.size();
+			ret.max_transpositions = State::get_transpos_size();
 			return ret;
 		}
 
 		for (State & move : current->get_possible_moves())
 		{
-			if (visited.find(move.get_hash()) == visited.end())
+			if (visited.find(move) == visited.end())
 			{
-				auto iter = (visited.insert(std::make_pair(move.get_hash(), std::move(move)))).first;
-				State * ptr = &iter->second;
+				auto iter = (visited.insert(std::move(move))).first;
+				const State * ptr = &(*iter);
 				toDo.push(ptr);
 				ret.open_states++;
 				continue;
 			}
 		}
-		current->clear_grid();
+		// current->clear_grid();
 		ret.iterations++;
 	}
 	ret.success = false;

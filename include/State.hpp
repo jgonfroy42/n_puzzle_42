@@ -145,7 +145,7 @@ class State
 		 * 
 		 * @return a uint64 containing the current grid's hash
 		 */
-		uint64_t get_hash() const;
+		__uint128_t get_hash() const;
 
 		/**
 		 * @brief Uses the inner transposition table to return the lowest depth this state has been seen
@@ -256,7 +256,7 @@ class State
 		 *  as well as the lowest depth a node has been seen
 		 *  THE PAIR IS [SCORE, DEPTH]
 		 */
-		static std::unordered_map<uint64_t, std::pair<int, int>> transposition_table;
+		static std::unordered_map<std::bitset<128>, std::pair<int, int>> transposition_table;
 
 		uint64_t	hash;
 
