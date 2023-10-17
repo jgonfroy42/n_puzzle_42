@@ -55,12 +55,11 @@ int main(int argc, char **argv)
 		grid_format start_grid = generate_grid(grid_size);
 		// grid_format start_grid = {0, 8, 3, 6, 7, 5, 4, 1, 2};
 
-/*		while (!is_solvable(start_grid))
+		while (!is_solvable(start_grid))
 		{
 			std::cout << "This grid is not solvable, generating a new one." << std::endl << std::endl;
 			start_grid = generate_grid(SIZE);	
-		}*/
-		std::cerr << "before problems" << std::endl;
+		}
 		init_state = new State(start_grid);
 	}
 	else
@@ -70,11 +69,11 @@ int main(int argc, char **argv)
 			config.printError();
 			exit(EXIT_FAILURE);
 		}
-/*		if (!is_solvable(config.getGrid()))
+		if (!is_solvable(config.getGrid()))
 		{
 			std::cerr << "This grid is invalid or is unsolvable\n";
 			exit(EXIT_FAILURE);
-		}*/
+		}
 		init_state = new State(config.getGrid());
 	}
 

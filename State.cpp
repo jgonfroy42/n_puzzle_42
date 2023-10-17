@@ -16,7 +16,8 @@ State::State(grid_format t_grid)
 	if (this->hash_grid.empty())
 		this->generate_hash_grid();
 	this->calculate_start_hash();
-	this->setTargetPosition();
+	target_position = get_target_position(this->n);
+	//this->setTargetPosition();
 	this->score = calculate_score();
 }
 
@@ -219,7 +220,7 @@ int	State::calculate_score(int new_index, int old_index, direction dir)
 }
 
 
-int State::calculate_missplaced_tiles()
+int State::calculate_misplaced_tiles()
 {	
 	int misplaced = 0;
 
@@ -605,6 +606,7 @@ std::vector<State> State::create_path() const
 
 void	State::setTargetPosition()
 {
+
 	grid_format target = get_winning_grid(State::getSideSize());
 
 	this->target_position.resize(size);
