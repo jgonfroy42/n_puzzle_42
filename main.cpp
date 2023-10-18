@@ -32,6 +32,7 @@ int main(int argc, char **argv)
 	if (!is_solvable(config.getGrid()))
 	{
 		std::cout << "Grid is not solvable\n";
+		delete init_state;
 		return (EXIT_SUCCESS);
 	}
 	std::cout << std::endl;
@@ -46,7 +47,11 @@ int main(int argc, char **argv)
 	else
 		result = a_star(init_state);
 	if (result.success == false)
+	{
 		std::cout << "Solution not found" << std::endl;
+		delete init_state;
+		return EXIT_SUCCESS;
+	}
 
 	auto stop = high_resolution_clock::now();
 	auto duration = duration_cast<milliseconds>(stop - start);
