@@ -76,5 +76,6 @@ bool isOnlyDigit_and_space(std::string & line);
 bool isOnlyDigits(std::string & line);
 void remove_comments(std::string & line);
 
+std::vector<int>	get_target_position(int size);
 
 #define MAX_SIZE 15

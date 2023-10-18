@@ -16,7 +16,8 @@ State::State(grid_format t_grid)
 	if (this->hash_grid.empty())
 		this->generate_hash_grid();
 	this->calculate_start_hash();
-	this->setTargetPosition();
+	target_position = get_target_position(this->n);
+	//this->setTargetPosition();
 	switch(this->_eval)
 	{
 		case eval::MISSPLACED_TILES :{
@@ -654,6 +655,7 @@ std::vector<State> State::create_path() const
 
 void	State::setTargetPosition()
 {
+
 	grid_format target = get_winning_grid(State::getSideSize());
 
 	this->target_position.resize(size);
