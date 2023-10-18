@@ -22,6 +22,11 @@ int main(int argc, char **argv)
 	State::set_config(config);
 
 	std::cout << "---Initial state---" << std::endl;
+	// std::bitset<128>	hi (init_state->get_hash() >> 64),
+	// 					lo (init_state->get_hash()),
+	// 					test {hi << 64 | lo};
+	// std::cout << "test     :" << test << std::endl;
+	// std::cout << "test_bis :" << std::bitset<128>(*reinterpret_cast<__uint128_t*>(init_state->grid)) << std::endl;
 		
 	init_state->display_grid();
 	std::cout << std::endl;

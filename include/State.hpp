@@ -153,7 +153,7 @@ class State
 		 * 
 		 * @return a uint64 containing the current grid's hash
 		 */
-		__uint128_t get_hash() const;
+		uint64_t get_hash() const;
 
 		/**
 		 * @brief Uses the inner transposition table to return the lowest depth this state has been seen
@@ -255,6 +255,9 @@ class State
 		int calculate_linear_colision(int new_index, int old_index, direction dir);
 		int get_col_colision(const State *state, int col);
 		int get_row_colision(const State *state, int row);
+
+
+
 		/* HASH related stuff */
 
 		/**

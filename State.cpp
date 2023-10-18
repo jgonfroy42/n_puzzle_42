@@ -144,9 +144,7 @@ bool		State::operator==(grid_format cmp_grid) const
 /*--------getter & setter-------*/
 
 optimized_grid	State::get_grid() const { return this->grid;}
-__uint128_t		State::get_hash() const {
-	if (this->getSideSize() <= 4)
-		return (__uint128_t)this->grid;
+uint64_t		State::get_hash() const {
 	return this->hash;
 }
 
@@ -160,10 +158,13 @@ Search_params State::getSearchParams() {return State::_search_params;}
 size_t State::get_transpos_size(){return State::transposition_table.size();}
 int State::get_lowest_depth() const {return this->transposition_table[this->get_hash()].second;}
 bool State::has_been_visited() const {
-	if (this->transposition_table.count(this->get_hash()) == 0)
-		std::cerr << "grid not found\n";
-	std::cerr << std::boolalpha << (this->transposition_table[this->get_hash()].second != this->move) << std::endl;
-	return this->transposition_table[this->get_hash()].second != this->move;
+	auto iter = this->transposition_table.find(get_hash());
+	if (iter == this->transposition_table.end())
+	{
+		// std::cerr << "grid not found" << std::endl;
+		return false;
+	}
+		return iter->second.second != this->move;
 	}
 // bool State::has_been_visited() const {return false;}
 
@@ -193,17 +194,17 @@ int	State::find_blank() const
 
 int	State::calculate_score()
 {
-	auto iter = this->transposition_table.find(this->get_hash());
+	auto iter = this->transposition_table.find(get_hash());
 	if (iter != this->transposition_table.end())
 	{
-		this->score = iter->second.first;
+		// this->score = iter->second.first;
 
 		if (iter->second.second > this->move)
 			iter->second.second = this->move;
-		return this->score;
+		// return this->score;
 	}
-//	else
-	// this->transposition_table.insert(std::make_pair(this->get_hash(), std::make_pair(this->score, this->move)));
+	else
+		this->transposition_table.insert(std::make_pair(get_hash(), std::make_pair(this->score, this->move)));
 
 	int move_needed = 0;
 
@@ -223,13 +224,13 @@ int	State::calculate_score()
 
 	// this->score = move_needed;
 	this->score = move_needed + (calculate_linear_colision());
-	this->transposition_table.insert(std::make_pair(this->get_hash(), std::make_pair(this->score, this->move)));
+		// this->transposition_table.insert(std::make_pair(get_hash(), std::make_pair(this->score, this->move)));
 	return this->score;
 }
 
 int	State::calculate_score(int new_index, int old_index, direction dir)
 {
-	auto iter = this->transposition_table.find(this->get_hash());
+	auto iter = this->transposition_table.find(get_hash());
 	if (iter != this->transposition_table.end())
 	{
 		this->score = iter->second.first;
@@ -238,8 +239,8 @@ int	State::calculate_score(int new_index, int old_index, direction dir)
 			iter->second.second = this->move;
 		return this->score;
 	}
-//	else
-	// this->transposition_table.insert(std::make_pair(this->get_hash(), std::make_pair(this->score, this->move)));
+	// else
+		// this->transposition_table.insert(std::make_pair(bitsetter(get_hash()), std::make_pair(this->score, this->move)));
 		
 
 	int	x_target = this->target_position[grid[new_index]] % n;
@@ -251,14 +252,14 @@ int	State::calculate_score(int new_index, int old_index, direction dir)
 	int variation = - old_manhattan + new_manhattan;
 	variation += calculate_linear_colision(new_index, old_index, dir);
 	this->score += variation;
-	this->transposition_table.insert(std::make_pair(this->get_hash(), std::make_pair(this->score, this->move)));
+	this->transposition_table.insert(std::make_pair(get_hash(), std::make_pair(this->score, this->move)));
 	return this->score;
 }
 
 
 int State::calculate_missplaced_tiles()
 {
-	auto iter = this->transposition_table.find(this->get_hash());
+	auto iter = this->transposition_table.find(get_hash());
 	if (iter != this->transposition_table.end())
 	{
 		this->score = iter->second.first;
@@ -279,7 +280,7 @@ int State::calculate_missplaced_tiles()
 			misplaced++;
 	}
 	this->score = misplaced;
-	this->transposition_table.insert(std::make_pair(this->get_hash(), std::make_pair(this->score, this->move)));
+	this->transposition_table.insert(std::make_pair(get_hash(), std::make_pair(this->score, this->move)));
 	return misplaced;
 }
 

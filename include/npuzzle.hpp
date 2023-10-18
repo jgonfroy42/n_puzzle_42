@@ -20,7 +20,7 @@
 
 #define SIZE 4
 
-typedef uint_least8_t cell_size;
+typedef uint8_t cell_size;
 typedef std::vector<int> grid_format;
 typedef cell_size * optimized_grid;
 
