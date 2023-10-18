@@ -219,7 +219,7 @@ int	State::calculate_score(int new_index, int old_index, direction dir)
 }
 
 
-int State::calculate_missplaced_tiles()
+int State::calculate_misplaced_tiles()
 {	
 	int misplaced = 0;
 
