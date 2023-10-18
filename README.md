@@ -1,6 +1,6 @@
 # n_puzzle_42
 
-##HOW TO USE
+## HOW TO USE
 1) choose an algorithm
 - A\* : A_STAR
 - Iterative Deepening A\* : IDA_STAR
@@ -20,7 +20,7 @@
 - specify a size to generate a grid : {N}
 
 Examples:
+
 `./npuzzle IDA_STAR MH+LC GREEDY <(python3 npuzzle-gen.py -s 5)`
+
 `./npuzzle A_STAR MP UNIFORM 3`
-
-
