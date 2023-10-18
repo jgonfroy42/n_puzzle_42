@@ -13,6 +13,8 @@ enum config_error
 	UNSUPPORTED_SIZE,
 	NO_SUCH_FILE,
 	INCOMPLETE_GRID,
+	INVALID_LINE,
+	WRONG_VALUES,
 };
 
 class Config

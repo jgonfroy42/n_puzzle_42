@@ -146,6 +146,12 @@ bool Config::_readGrid()
 			line.erase(0, pos);
 			while(isspace(line[0]))
 				line.erase(line.begin());
+		
+			if (i > this->_grid_size * this->_grid_size)
+			{
+				this->error_type = INVALID_LINE;
+				return false;
+			}
 		}
 		if (j < this->_grid_size)
 		{
@@ -158,6 +164,19 @@ bool Config::_readGrid()
 		this->error_type = INCOMPLETE_GRID;
 		return false;
 	}
+
+	grid_format copy = _grid;
+	std::sort(copy.begin(), copy.end());
+
+	for (int i = 0; i < (int)copy.size(); i++)
+	{
+		if (copy[i] != i)
+		{
+			this->error_type = WRONG_VALUES;
+			return false;
+		}
+	}
+
 	return true;
 }
 
@@ -168,7 +187,9 @@ static std::map<config_error, std::string> error_to_str = {
 	{MISSING_INFO, "Config file is incomplete"},
 	{UNSUPPORTED_SIZE, "Grid size is not supported"},
 	{NO_SUCH_FILE, "There is no such file"},
-	{INCOMPLETE_GRID, "The grid is missing some tiles"}
+	{INCOMPLETE_GRID, "The grid is missing some tiles"},
+	{INVALID_LINE, "There is too many number in line"},
+	{WRONG_VALUES, "Values on the tiles are incorrect"}
 };
 
 void Config::printError(void) const

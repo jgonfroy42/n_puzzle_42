@@ -148,16 +148,6 @@ bool is_solvable(const grid_format &grid)
 	int blank_index = grid.size() - 1; //seule position où l'index ne sera pas mis à jour dans la boucle
 
 	int nsize = sqrt(grid.size());
-	//testing that the grid has valid tiles
-	grid_format copy = grid;
-	std::sort(copy.begin(), copy.end());
-
-	for(int i = 0;i < (int)copy.size(); i++)
-	{
-		if (copy[i] != i)
-			return false;
-	}
-
 	std::vector<int> target_position = get_target_position(nsize);
 
 	for (size_t i = 0; i < grid.size() - 1; i++)
