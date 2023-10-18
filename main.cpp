@@ -29,6 +29,11 @@ int main(int argc, char **argv)
 	// std::cout << "test_bis :" << std::bitset<128>(*reinterpret_cast<__uint128_t*>(init_state->grid)) << std::endl;
 		
 	init_state->display_grid();
+	if (!is_solvable(config.getGrid()))
+	{
+		std::cout << "Grid is not solvable\n";
+		return (EXIT_SUCCESS);
+	}
 	std::cout << std::endl;
 	
 	auto start = high_resolution_clock::now();

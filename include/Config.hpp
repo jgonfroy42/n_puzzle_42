@@ -25,6 +25,7 @@ public:
 	std::string			getFileName(void) const {return this->_file_name;};
 	int					getGridSize(void) const {return this->_grid_size;};
 	std::vector<int>	getGrid(void) const {return this->_grid;};
+	void				setGrid(const std::vector<int> & grid) {this->_grid = grid;};
 	e_algo				getAlgo(void) const {return this->_algo;};
 	eval				getEval(void) const {return this->_e_eval;};
 	Search_params		getSearchParams(void) const {return this->_search_params;};

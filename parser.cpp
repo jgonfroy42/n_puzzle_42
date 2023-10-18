@@ -46,19 +46,16 @@ State * parser(int argc, char **argv, Config & config)
 		args.erase(args.begin());		
 	}
 
-	//if there is a filename left
-	if (args.size() == 0)
+	if (args.size() == 0) //auto generate a grid
 	{
 		grid_format start_grid = generate_grid(grid_size);
 
-		init_state = new State(start_grid);
-		if (!init_state)
-		{
-			std::cerr << "Fatal Error\n";
-			return NULL;
-		}
+		while(!is_solvable(start_grid))
+			start_grid = generate_grid(grid_size);
+
+		config.setGrid(start_grid);
 	}
-	else
+	else //else load grid from file
 	{
 		if(!config.loadNewFile(args.front()))
 		{
@@ -66,13 +63,13 @@ State * parser(int argc, char **argv, Config & config)
 			return NULL;
 		}
 
-		init_state = new State(config.getGrid());
-		if (!init_state)
-		{
-			std::cerr << "Fatal Error\n";
-			return NULL;
-		}
 	}
 
+	init_state = new State(config.getGrid());
+	if (!init_state)
+	{
+		std::cerr << "Fatal Error\n";
+		return NULL;
+	}
 	return init_state;
 }
