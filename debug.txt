@@ -1,0 +1,19 @@
+---Initial state---
+ 12  0  8  3
+  1  5 10  7
+  9 13 11 14
+ 15  6  4  2
+
+increasing threshold to :38
+increasing threshold to :39
+increasing threshold to :40
+increasing threshold to :41
+increasing threshold to :42
+increasing threshold to :43
+increasing threshold to :44
+increasing threshold to :45
+increasing threshold to :46
+increasing threshold to :47
+increasing threshold to :48
+increasing threshold to :49
+increasing threshold to :50

@@ -27,7 +27,7 @@ SearchResult	search_algorithm(State *init_state)
 			return search;
 		}
 		palier = ret;
-		std::cout << "increasing threshold to :" << palier << std::endl;
+//		std::cout << "increasing threshold to :" << palier << std::endl;
 	}
 
 	search.success = false;
