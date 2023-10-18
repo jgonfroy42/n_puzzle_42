@@ -12,7 +12,14 @@ SearchResult a_star(State *init_state)
 	SearchResult ret;
 	State winning_state(get_winning_grid(init_state->getSideSize()));
 
-	auto cmp = [](const State * lhs, const State * rhs) { return lhs->score + lhs->move >= rhs->score + rhs->move;};
+	auto cmp = (State::getSearchParams() == Search_params::UNIFORM_COST ? [](const State * lhs, const State * rhs)
+	{
+		return lhs->score + lhs->move >= rhs->score + rhs->move;
+	} : [](const State * lhs, const State * rhs)
+	{
+		return lhs->score * 100 + lhs->move >= rhs->score * 100 + rhs->move;
+	});
+
 	std::priority_queue<const State*, std::vector<const State *>, decltype(cmp)> toDo(cmp);
 
 	std::unordered_set<State> visited;
@@ -39,7 +46,7 @@ SearchResult a_star(State *init_state)
 			return ret;
 		}
 
-		for (State & move : current->get_possible_moves())
+		for (const State & move : current->get_possible_moves())
 		{
 			if (visited.find(move) == visited.end())
 			{

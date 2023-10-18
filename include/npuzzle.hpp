@@ -18,12 +18,14 @@
 #include <iomanip>
 #include <bitset>
 
+#define SIZE 4
 
-typedef uint_least8_t cell_size;
+typedef uint8_t cell_size;
 typedef std::vector<int> grid_format;
 typedef cell_size * optimized_grid;
 
 class State;
+class Config;
 struct SearchResult
 {
 	bool success = false;
@@ -43,11 +45,27 @@ enum e_algo
 	IDA_STAR,
 };
 
+enum eval
+{
+	MANHATTAN,
+	HYBRID,
+	MISSPLACED_TILES,
+};
+
+enum Search_params
+{
+	GREEDY,
+	UNIFORM_COST
+};
 
 extern std::default_random_engine rng_engine;
+
+
+State * parser(int argc, char **argv, Config & config);
+
 SearchResult	a_star(State *init_state);
 SearchResult	search_algorithm(State *init_state);
-int deepening_search(int palier, int g, State &winning_state, std::vector<State> & end_path, std::unordered_map<std::bitset<128>, int> & visited, SearchResult & search);
+int deepening_search(int palier, int g, State &winning_state, std::vector<State> & end_path, SearchResult & search);
 grid_format	get_winning_grid(int size);
 grid_format generate_grid(int size);
 grid_format generate_custom_grid();
@@ -58,5 +76,6 @@ bool isOnlyDigit_and_space(std::string & line);
 bool isOnlyDigits(std::string & line);
 void remove_comments(std::string & line);
 
+std::vector<int>	get_target_position(int size);
 
 #define MAX_SIZE 15

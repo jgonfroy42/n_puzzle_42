@@ -7,11 +7,12 @@ SRCS =	main.cpp \
 		grid_utils.cpp \
 		a_star.cpp \
 		ida_star.cpp \
-		utils.cpp
+		utils.cpp \
+		parser.cpp
 
 CXX = c++
 
-CXXFLAGS = -Wall -Wextra -Werror -std=c++20 -Ofast
+CXXFLAGS = -Wall -Wextra -Werror -std=c++20 -g3
 
 CPPFLAGS = -MMD -I ./include/
 

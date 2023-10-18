@@ -1,5 +1,18 @@
 #include "npuzzle.hpp"
 
+std::vector<int>	get_target_position(int size)
+{
+	std::vector<int> targetPosition;
+	grid_format target = get_winning_grid(size);
+
+	targetPosition.resize(size * size);
+	
+	for (int i = 0; i < size * size; i++)
+		targetPosition[target[i]] = i;
+
+	return targetPosition;
+} 
+
 grid_format	get_winning_grid(int size)
 {
 	grid_format grid;
@@ -145,38 +158,21 @@ bool is_solvable(const grid_format &grid)
 			return false;
 	}
 
+	std::vector<int> target_position = get_target_position(nsize);
 
 	for (size_t i = 0; i < grid.size() - 1; i++)
 	{
 		if (grid[i] == 0)
-		{
 			blank_index = i;
-			continue;
- 		}
 		for (size_t j = i + 1; j < grid.size(); j++)
-		{
-			if (grid[j] != 0 && grid[j] < grid[i])
+			if (target_position[grid[i]] > target_position[grid[j]])
 				inversion++;
-		}
 	}
  
-	//if n is odd, solvable if number of inversion in even
-	if (nsize % 2 != 0)
-	{
-		if (inversion % 2 == 0)
-			return true;
-		return false;
-	}
-	
-	//if n is even and inversion odd, solvable if:
-	//- blank in even row (from bottom) and inversion odd
-	//- or, blank in odd row and inversion even
+	//if blank distant to position is odd, solvable if number of inversion is odd
+	//if distant is even, number of inversion must be even too
 
-	int row_from_bottom = nsize - blank_index / nsize;
-	if (row_from_bottom % 2 == 0 && inversion % 2 != 0)
-		return true;
-	if (row_from_bottom % 2 != 0 && inversion % 2 == 0)
-		return true;
+	int blank_dist = abs(target_position[0] / nsize - blank_index / nsize) + abs(target_position[0] % nsize - blank_index % nsize);
 
-	return false;
+	return blank_dist % 2 == inversion % 2;
 }

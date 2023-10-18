@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstring>
+#include "Config.hpp"
 
 enum direction
 {
@@ -14,13 +15,6 @@ enum direction
 	LEFT,
 	RIGHT,
 	NONE
-};
-
-enum eval
-{
-	manhattan,
-	conflicts,
-	hybrid,
 };
 
 
@@ -89,6 +83,20 @@ class State
 		static int getTotalStates();
 
 		/**
+		 * @brief Get the Eval object
+		 * 
+		 * @return eval 
+		 */
+		static eval getEval();
+
+		/**
+		 * @brief Get the Search Params object
+		 * 
+		 * @return search_params 
+		 */
+		static Search_params getSearchParams();
+
+		/**
 		 * @brief Set the size (side size format) of the state class
 		 * this has effect on all instances.
 		 * 
@@ -97,11 +105,11 @@ class State
 		static void setSize(const int & n);
 
 		/**
-		 * @brief Set the evaluation function for every States to use
+		 * @brief Config state
 		 * 
-		 * @param eval_set
+		 * @param config 
 		 */
-		static void		set_eval(eval eval_set);
+		static void		set_config(Config & config);
 
 		static size_t get_transpos_size();
 		/**	OPERATORS **/
@@ -145,7 +153,7 @@ class State
 		 * 
 		 * @return a uint64 containing the current grid's hash
 		 */
-		__uint128_t get_hash() const;
+		uint64_t get_hash() const;
 
 		/**
 		 * @brief Uses the inner transposition table to return the lowest depth this state has been seen
@@ -213,10 +221,12 @@ class State
 		State(const State * parent, int index_blank, int index_swap, direction dir);
 
 
-		static size_t total_states;//total number of states ever constructed
-		static int	n; //size of the side of the puzzle
-		static int	size; //number of cells in the puzzle
-		static std::vector<int>	target_position; //pos of tile of winning grid
+		static inline size_t total_states;//total number of states ever constructed
+		static inline int	n = 0; //size of the side of the puzzle
+		static inline int	size = State::getSideSize() * State::getSideSize(); //number of cells in the puzzle
+		static inline std::vector<int>	target_position; //pos of tile of winning grid
+		static inline Search_params _search_params;
+		static inline eval _eval;
 
 		/**
 		 * @brief returns the index of the blank tile in the grid
@@ -233,7 +243,7 @@ class State
 		int	calculate_score();
 		int	calculate_score(int new_index, int old_index, direction dir);
 
-		int	calculate_misplaced_tiles();	
+		int	calculate_missplaced_tiles();	
 
 		/**
 		 * @brief a heuristics function based on the linear collision/conflict widely known npuzzle heuristics
@@ -245,20 +255,23 @@ class State
 		int calculate_linear_colision(int new_index, int old_index, direction dir);
 		int get_col_colision(const State *state, int col);
 		int get_row_colision(const State *state, int row);
+
+
+
 		/* HASH related stuff */
 
 		/**
 		 * @brief a double array containing all randomly generated hash used in the zobrist hash
 		 * 
 		 */
-		static std::vector<std::vector<uint64_t>> hash_grid;
+		static inline std::vector<std::vector<uint64_t>> hash_grid;
 
 		/**
 		 * @brief a transposition table containing all previously calculated scores
 		 *  as well as the lowest depth a node has been seen
 		 *  THE PAIR IS [SCORE, DEPTH]
 		 */
-		static std::unordered_map<std::bitset<128>, std::pair<int, int>> transposition_table;
+		static inline std::unordered_map<uint64_t, std::pair<int, int>> transposition_table;
 
 		uint64_t	hash;
 
