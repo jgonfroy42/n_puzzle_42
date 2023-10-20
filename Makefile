@@ -12,7 +12,7 @@ SRCS =	main.cpp \
 
 CXX = c++
 
-CXXFLAGS = -Wall -Wextra -Werror -std=c++20 -g3
+CXXFLAGS = -Wall -Wextra -Werror -std=c++20 -Ofast
 
 CPPFLAGS = -MMD -I ./include/
 
