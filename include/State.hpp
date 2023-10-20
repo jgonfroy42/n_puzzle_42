@@ -153,7 +153,7 @@ class State
 		 * 
 		 * @return a uint64 containing the current grid's hash
 		 */
-		uint64_t get_hash() const;
+		const std::bitset<128> & get_hash() const;
 
 		/**
 		 * @brief Uses the inner transposition table to return the lowest depth this state has been seen
@@ -264,16 +264,16 @@ class State
 		 * @brief a double array containing all randomly generated hash used in the zobrist hash
 		 * 
 		 */
-		static inline std::vector<std::vector<uint64_t>> hash_grid;
+		static inline std::vector<std::vector<std::bitset<128>>> hash_grid;
 
 		/**
 		 * @brief a transposition table containing all previously calculated scores
 		 *  as well as the lowest depth a node has been seen
 		 *  THE PAIR IS [SCORE, DEPTH]
 		 */
-		static inline std::unordered_map<uint64_t, std::pair<int, int>> transposition_table;
+		static inline std::unordered_map<std::bitset<128>, std::pair<int, int>> transposition_table;
 
-		uint64_t	hash;
+		std::bitset<128>	hash;
 
 		/**
 		 * @brief calculate a new zobrist hash from a move
@@ -299,7 +299,7 @@ namespace std {
 	template <>
 	struct hash<State> {
 		size_t operator()(const State & state) const {
-			return (size_t(state.get_hash()));
+			return (state.get_hash().to_ulong());
 		}
 	};
 } 

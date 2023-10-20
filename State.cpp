@@ -145,7 +145,7 @@ bool		State::operator==(grid_format cmp_grid) const
 /*--------getter & setter-------*/
 
 optimized_grid	State::get_grid() const { return this->grid;}
-uint64_t		State::get_hash() const {
+const std::bitset<128>		& State::get_hash() const {
 	return this->hash;
 }
 
@@ -626,7 +626,12 @@ void	State::generate_hash_grid()
 	for(int i = 0; i < State::size; i++)
 	{
 		for(int j = 0; j < State::size; j++)
-			State::hash_grid[i].push_back(generate_random_uint64());
+		{
+			std::bitset<128>	hi (generate_random_uint64()),
+								lo (generate_random_uint64()),
+								total (hi << 64 | lo);
+			State::hash_grid[i].push_back(total);
+		}
 	}
 }
 
